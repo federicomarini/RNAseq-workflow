@@ -1,72 +1,104 @@
-######################################
-# @ Thomas W. Battaglia
-# @ Thomas.battaglia@nyumc.org
-######################################
 #!/bin/bash
 #$ -cwd
 #$ -S /bin/bash
-#$ -M thomas.battaglia@nyumc.org
-#$ -N Workflow
-#$ -e error.txt
-#$ -o stdout.txt
+#$ -N RNAseq_Workflow
+#$ -e worflow_error.txt
+#$ -o workflow_stdout.txt
 #$ -pe threaded 16
 
-# Load Modules-------------------
-module load fastqc
-module load samtools
-module load samstat
+# - - - - - - - - - - - - - - - - - - - - - - - -
+# @ Thomas W. Battaglia
+# @ tb1280@nyu.edu
+
+# Description:
+
+# - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-# Initializers-------------------
-InitalQC=0
-RemoveAdapters=0
-RemoveRNA=0
-IndexGenome=0
-AlignSequences=1
+# - - - - - - - - - - -
+# Variables to set
+# - - - - - - - - - - - 
+sequenceLength=50
+qualityCutoff=20
+trimLength=20
+trimAdapterSeq="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
 
 
+# - - - - - - - - - - -
+# Load required modules
+# - - - - - - - - - - - 
+module load STAR
 
 
+# - - - - - - - - - - - -
+# Verify workflow can run
+# - - - - - - - - - - - -
+# No Trim Galore! in PATH
+# No Cutadapt in PATH
+# No FASTQ in PATH
+# No STAR in PATH
+# No SortMeRNA in PATH
+# No index files in index folder
 
 
+# - - - - - - - - - - - -
+# Set default variables
+# - - - - - - - - - - - -
 
-# Check to make sure the program can run
+# Input/Output
+inputFiles=input/*.fastq.gz
+outputFolder="output.$(date +%F_%R)/"
+mkdir -p outputFolder
 
-
-
-
-
-
-
-
-# Input Parameters (Change if needed)
-#-----------------------------------------------------------#
-# Minimum length of sequences/Adapter sequence to be trimmed from raw reads.
-TrimLength=20
-QualityCutoff=20
-TrimAdapterSeq="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
-
-
-# Inputs/Outputs-----------------
-InputFiles=input/*.fastq.gz
-OutputFolder="output/"
-mkdir -p $OutputFolder
-
-# Check to see if output has already been run.
-#if [ -d "$OutputFolder" ]; then
-#OutputFolder="output.$(date +%F_%R)/"
-#fi
-
-
-# Location of the Genome file. Location of the Index genome.
-# For multiple analyses of the same genome, you can use the same location.
-Genome=genome/genome/*
-GenomeIndex="genome/index/"
-GenomeGTF='genome/annotation/*.gtf'
+# Genome/Annotation
+genomeFile=genome/genome/*
+indexFolder="index/"
+annotationFile="annotation/*"
 
 # SortMeRNA Location
-SortMeRNALoc="packages/sortmerna/sortmerna"
-SortmernaDB="packages/sortmerna"
+sortMeRNALoc="tools/sortmerna/sortmerna"
+sortMeRNADB="tools/sortmerna"
+
+
+# - - - - - - - - - - -
+# Variables to set
+# - - - - - - - - - - - 
+
+
+# - - - - - - - - - - -
+# Run FASTQC
+# - - - - - - - - - - - 
+
+
+# - - - - - - - - - - -
+# Run Trim Galore!
+# - - - - - - - - - - - 
+
+
+# - - - - - - - - - - -
+# Run SortMeRNA
+# - - - - - - - - - - - 
+
+
+# - - - - - - - - - - -
+# Run STAR-aligner
+# - - - - - - - - - - - 
+
+
+# - - - - - - - - - - -
+# Run samtools
+# - - - - - - - - - - - 
+
+
+# - - - - - - - - - - - - - - 
+# Run Subread (featureCounts)
+# - - - - - - - - - - - - - -
+
+
+
+
+
+
 
 
 

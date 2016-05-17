@@ -144,10 +144,8 @@ wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_wo
 ```
 
 Before submitting the command, make sure you change the variables within the file to reflect your data set.  
-**sequenceLength** :  The length of the reads in each file. (Typically 50 or 100)  
 **qualityCutoff** : The minimum Phred score to retain nucleotides  
 **trimLength** :  The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)  
-**trimAdapterSeq** : The nucloetide sequence  
 
 -----
 

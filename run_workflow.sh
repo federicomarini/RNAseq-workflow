@@ -18,10 +18,8 @@
 # - - - - - - - - - - -
 # Variables to set
 # - - - - - - - - - - - 
-sequenceLength=50
 qualityCutoff=20
 trimLength=20
-trimAdapterSeq="GATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
 
 
 # - - - - - - - - - - -
@@ -108,7 +106,6 @@ mkdir -p $outputQcFolder
 
 # Run Quality Analysis on Raw Reads
 for seq in $inputFiles; do
-  echo $seq
   fastqc -o $outputQcFolder --noextract -t 12 $seq
 done
 
@@ -120,13 +117,14 @@ echo "Trimming raw reads..."
 mkdir -p $outputQcFolder
 
 # Run Trim Galore to remove adapters and low base quality scores
-for seq in $inputFiles*; do
+for trim in $inputFiles*; do
   tools/trim_galore_zip/trim_galore \
   --quality $qualityCutoff \
   --fastqc \
   --gzip \
   --length $trimLength \
-  --output_dir $outputQcFolder
+  --output_dir $outputTrimFolder \
+  $trim
 done
 
 

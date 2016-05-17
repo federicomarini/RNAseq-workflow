@@ -192,11 +192,22 @@ rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 
 # Check if SortMeRNA was installed properly
 tools/sortmerna-2.1-linux-64/indexdb_rna --help
-tools/sortmerna-2.1-linux-64/sortmerna --help
+tools/sortmerna-2.1-linux-64/sortmerna --help</code></pre>
+<p>Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesnt require too much computation.</p>
+<pre class="bash"><code>
+# Set variable for location of index files
+sortmernaDB=&quot;tools/sortmerna-2.1-linux-64&quot;
 
-# Generate indexes for SortMeRNA
-(TODO)
-</code></pre>
+# Set location for database
+sortmernaREF=${sortmernaDB}/rRNA_databases/silva-arc-16s-id95.fasta,${sortmernaDB}/index/silva-arc-16s-id95:\
+${sortmernaDB}/rRNA_databases/silva-arc-23s-id98.fasta,${sortmernaDB}/index/silva-arc-23s-id98:\
+${sortmernaDB}/rRNA_databases/silva-bac-16s-id90.fasta,${sortmernaDB}/index/silva-bac-16s-id95:\
+${sortmernaDB}/rRNA_databases/silva-bac-23s-id98.fasta,${sortmernaDB}/index/silva-bac-23s-id98:\
+${sortmernaDB}/rRNA_databases/silva-euk-18s-id95.fasta,${sortmernaDB}/index/silva-euk-18s-id95:\
+${sortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${sortmernaDB}/index/silva-euk-28s-id98
+
+# Generate indexs
+tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF </code></pre>
 <hr />
 </div>
 </div>
@@ -249,10 +260,8 @@ qsub make_index.sh 50</code></pre>
 <p>Once the index has been generated and all of the tools are installed, it is time to start the alignment workflow. The workflow is stored as a shell file which has <code>for</code> loops to iterate over each input <code>fastq</code> file. This setup allows the shell file to be submitted to the cluster as a job. The workflow will place files generated during processing into the correct folders.</p>
 <pre class="bash"><code>wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow.sh</code></pre>
 <p>Before submitting the command, make sure you change the variables within the file to reflect your data set.<br />
-<strong>sequenceLength</strong> : The length of the reads in each file. (Typically 50 or 100)<br />
 <strong>qualityCutoff</strong> : The minimum Phred score to retain nucleotides<br />
-<strong>trimLength</strong> : The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)<br />
-<strong>trimAdapterSeq</strong> : The nucloetide sequence</p>
+<strong>trimLength</strong> : The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)</p>
 <hr />
 </div>
 <div id="run-the-workflow" class="section level3">

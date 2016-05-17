@@ -5,6 +5,7 @@
 #$ -e star_index_error.txt
 #$ -o star_index_stdout.txt
 #$ -pe threaded 12
+#$ -l mem_free=8G
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -26,17 +27,17 @@ module load star/2.5.0c
 # - - - - - - - - - - - -
 # Set variables
 # - - - - - - - - - - - -
-readLength=expr $1 - 1
-genomeFile=genome/*
-indexFolder="index/"
-annotationFile=annotation/*
+export readLength=`expr $1 - 1`
+export genomeFile=genome/*
+export indexFolder="index/"
+export annotationFile=annotation/*
 
 # - - - - - - - - - - - -
 # Verify script can run
 # - - - - - - - - - - - -
 
 # No STAR installation
-if [[ -z $(STAR -version) ]]; then
+if [[ -z $(STAR --version) ]]; then
     echo "No STAR installation found! Exiting now."
     exit 1
 fi
@@ -52,4 +53,5 @@ STAR \
 --runThreadN 12
 
 # Message completed
-echo 'Index generated!'
+echo 'STAR Index generated!'
+

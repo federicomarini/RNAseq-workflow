@@ -79,10 +79,24 @@ rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 # Check if SortMeRNA was installed properly
 tools/sortmerna-2.1-linux-64/indexdb_rna --help
 tools/sortmerna-2.1-linux-64/sortmerna --help
+```
 
-# Generate indexes for SortMeRNA
-(TODO)
+Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesnt require too much computation.
+```bash
 
+# Set variable for location of index files
+sortmernaDB="tools/sortmerna-2.1-linux-64"
+
+# Set location for database
+sortmernaREF=${sortmernaDB}/rRNA_databases/silva-arc-16s-id95.fasta,${sortmernaDB}/index/silva-arc-16s-id95:\
+${sortmernaDB}/rRNA_databases/silva-arc-23s-id98.fasta,${sortmernaDB}/index/silva-arc-23s-id98:\
+${sortmernaDB}/rRNA_databases/silva-bac-16s-id90.fasta,${sortmernaDB}/index/silva-bac-16s-id95:\
+${sortmernaDB}/rRNA_databases/silva-bac-23s-id98.fasta,${sortmernaDB}/index/silva-bac-23s-id98:\
+${sortmernaDB}/rRNA_databases/silva-euk-18s-id95.fasta,${sortmernaDB}/index/silva-euk-18s-id95:\
+${sortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${sortmernaDB}/index/silva-euk-28s-id98
+
+# Generate indexs
+tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF 
 ```
 
 -----

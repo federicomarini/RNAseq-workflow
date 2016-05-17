@@ -131,11 +131,11 @@ $(document).ready(function () {
 </div>
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<p>RNAseq is an emerging technology for deep RNA sequencing. Not only does RNAseq technology have the ability to analyze differences in gene expression between samples, but can discover new isoforms of genes and analyze SNP variation of particular genes. This tutorial will cover the basic workflow for analyzing RNA seq data on host tissue. It will not cover the workflow for analyzing RNA seq on microbial community samples. For analysis of the meta-transcriptome using RNA seq, see the workflow for Whole Genome Sequencing Metagenomics (WGS Metagenomics) in a different tutorial.</p>
+<p>RNA seq is an emerging technology for deep RNA sequencing. Not only does RNA seq technology have the ability to analyze differences in gene expression between samples, but can discover new isoforms of genes and analyze SNP variation of particular genes. This tutorial will cover the basic workflow for analyzing RNA seq data on host tissue. It will not cover the workflow for analyzing RNA seq on microbial community samples. For analysis of the meta-transcriptome using RNA seq, see the workflow for Whole Genome Sequencing Metagenomics (WGS Metagenomics) in a different tutorial.</p>
 </div>
 <div id="setup-new-directory-for-analysis" class="section level3">
 <h3>1. Setup new directory for analysis</h3>
-<p>Many files are generated during the RNAseq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory <code>pwd</code> is within the new folder created below.</p>
+<p>Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory <code>pwd</code> is within the new folder created below.</p>
 <p><strong>input</strong> : per sample sequencing files (.fastq)<br />
 <strong>genome</strong> : directory for storing genome of interest (.fasta/.fna)<br />
 <strong>annotation</strong> : directory for storing the annotation file associated with host genome (.gtf/.gff3)<br />
@@ -193,7 +193,7 @@ rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 # Check if SortMeRNA was installed properly
 tools/sortmerna-2.1-linux-64/indexdb_rna --help
 tools/sortmerna-2.1-linux-64/sortmerna --help</code></pre>
-<p>Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesnt require too much computation.</p>
+<p>Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesn’t require too much computation.</p>
 <pre class="bash"><code>
 # Set variable for location of index files
 sortmernaDB=&quot;tools/sortmerna-2.1-linux-64&quot;
@@ -213,7 +213,7 @@ tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF </code></pre>
 </div>
 <div id="download-host-genome-and-annotation-file" class="section level3">
 <h3>3. Download host genome and annotation file</h3>
-<p>A host genome and annotation file are required for a complete RNAseq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.</p>
+<p>A host genome and annotation file are required for a complete RNA seq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.</p>
 <div id="a.-human-genome" class="section level4">
 <h4>3A. Human genome</h4>
 <pre class="bash"><code># Download human genome to the 'genome' folder
@@ -281,13 +281,15 @@ library(DESEq2)
 library(ggplot2)
 
 # Import counts table from featureCounts
+counts &lt;- read.delim(&quot;&quot;)
 
 # Import metadata (or create a new dataframe)
+metadata &lt;- read.delim(&quot;&quot;)
 
 # Relevel so we know whats control group
-metadatas$Group &lt;- relevel(targets$Group, ref = &quot;CON&quot;)
+metadatas$Group &lt;- relevel(targets$Group, ref = &quot;Control&quot;)
 
-# Make Deseq2 object from featureCounts object -----------
+# Make DESeq2 object from featureCounts object 
 ddsMat &lt;- DESeqDataSetFromMatrix(countData = countsTable$counts,
                                  colData = metadata,
                                  design = ~Group)
@@ -304,9 +306,9 @@ summary(res_out)</code></pre>
 </div>
 <div id="add-gene-annotation-information-to-results-table" class="section level3">
 <h3>8. Add gene annotation information to results table</h3>
-<p>Depending upon the dataset, you may have to change the database for gene annotation.<br />
+<p>Depending upon the data set, you may have to change the database for gene annotation.<br />
 <strong>Human</strong> : <code>hsapiens_gene_ensembl</code><br />
-<strong>Mouse</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
+<strong>Mouse</strong> : <code>mmusculus_gene_ensembl</code><br />
 <strong>Squirrel</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
 <strong>More</strong> :</p>
 <pre class="r"><code># Run this command to get a list of available marts
@@ -321,20 +323,23 @@ geneIDs &lt;- getBM(filters = &quot;ensembl_gene_id&quot;,
                                 &quot;description&quot;, 
                                 &quot;entrezgene&quot;), 
                  values = row.names(res_out), 
-                 mart = useMart(&quot;ensembl&quot;, dataset = &quot;&quot;), 
+                 mart = useMart(&quot;ensembl&quot;, dataset = &quot;mmusculus_gene_ensembl&quot;), 
                  uniqueRows = T)
-                 
+
+# Get row numbers that correspond to geneID's and annotation data            
 idx &lt;- match(row.names(res_out), geneIDs$ensembl_gene_id)
+
+# Make a new column of gene annotation data
 res_out$ensembl_gene_id &lt;- row.names(res_out)
 res_out$gene_name &lt;- geneIDs$external_gene_name[idx]
 res_out$description &lt;- geneIDs$description[idx]
 res_out$entrez &lt;- geneIDs$entrezgene[idx]
 
 # Show only significant genes
-sig_res &lt;- subset(res_out, padj &lt; 0.05)
+sig_results &lt;- subset(res_out, padj &lt; 0.05)
 
 # Get summary of significant genes
-summary(sig_res)
+summary(sig_results)
 </code></pre>
 <hr />
 </div>
@@ -344,7 +349,7 @@ summary(sig_res)
 library(clusterProfiler)
 
 # Convert geneID's to EntrezID or use column create from annotation step.
-
+as(sig_results, 'data.frame')
 </code></pre>
 </div>
 <div id="citations" class="section level3">

@@ -5,10 +5,10 @@
   
   
 ### Introduction  
-RNAseq is an emerging technology for deep RNA sequencing. Not only does RNAseq technology have the ability to analyze differences in gene expression between samples, but can discover new isoforms of genes and analyze SNP variation of particular genes. This tutorial will cover the basic workflow for analyzing RNA seq data on host tissue. It will not cover the workflow for analyzing RNA seq on microbial community samples. For analysis of the meta-transcriptome using RNA seq, see the workflow for Whole Genome Sequencing Metagenomics (WGS Metagenomics) in a different tutorial.
+RNA seq is an emerging technology for deep RNA sequencing. Not only does RNA seq technology have the ability to analyze differences in gene expression between samples, but can discover new isoforms of genes and analyze SNP variation of particular genes. This tutorial will cover the basic workflow for analyzing RNA seq data on host tissue. It will not cover the workflow for analyzing RNA seq on microbial community samples. For analysis of the meta-transcriptome using RNA seq, see the workflow for Whole Genome Sequencing Metagenomics (WGS Metagenomics) in a different tutorial.
 
 ### 1. Setup new directory for analysis
-Many files are generated during the RNAseq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory ```pwd``` is within the new folder created below.
+Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory ```pwd``` is within the new folder created below.
 
 **input** : per sample sequencing files (.fastq)  
 **genome** : directory for storing genome of interest (.fasta/.fna)  
@@ -81,7 +81,7 @@ tools/sortmerna-2.1-linux-64/indexdb_rna --help
 tools/sortmerna-2.1-linux-64/sortmerna --help
 ```
 
-Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesnt require too much computation.
+Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesn't require too much computation.
 ```bash
 
 # Set variable for location of index files
@@ -102,7 +102,7 @@ tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF
 -----
 
 ### 3. Download host genome and annotation file
-A host genome and annotation file are required for a complete RNAseq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.
+A host genome and annotation file are required for a complete RNA seq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.
 
 #### 3A. Human genome
 ```bash
@@ -183,13 +183,15 @@ library(DESEq2)
 library(ggplot2)
 
 # Import counts table from featureCounts
+counts <- read.delim("")
 
 # Import metadata (or create a new dataframe)
+metadata <- read.delim("")
 
 # Relevel so we know whats control group
-metadatas$Group <- relevel(targets$Group, ref = "CON")
+metadatas$Group <- relevel(targets$Group, ref = "Control")
 
-# Make Deseq2 object from featureCounts object -----------
+# Make DESeq2 object from featureCounts object 
 ddsMat <- DESeqDataSetFromMatrix(countData = countsTable$counts,
                                  colData = metadata,
                                  design = ~Group)
@@ -207,9 +209,9 @@ summary(res_out)
 -----
 
 ### 8. Add gene annotation information to results table
-Depending upon the dataset, you may have to change the database for gene annotation.  
+Depending upon the data set, you may have to change the database for gene annotation.  
 **Human** : ```hsapiens_gene_ensembl```   
-**Mouse** : ```itridecemlineatus_gene_ensembl```   
+**Mouse** : ```mmusculus_gene_ensembl```   
 **Squirrel** : ```itridecemlineatus_gene_ensembl```  
 **More** :    
 ```R
@@ -228,20 +230,23 @@ geneIDs <- getBM(filters = "ensembl_gene_id",
                                 "description", 
                                 "entrezgene"), 
                  values = row.names(res_out), 
-                 mart = useMart("ensembl", dataset = ""), 
+                 mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"), 
                  uniqueRows = T)
-                 
+
+# Get row numbers that correspond to geneID's and annotation data            
 idx <- match(row.names(res_out), geneIDs$ensembl_gene_id)
+
+# Make a new column of gene annotation data
 res_out$ensembl_gene_id <- row.names(res_out)
 res_out$gene_name <- geneIDs$external_gene_name[idx]
 res_out$description <- geneIDs$description[idx]
 res_out$entrez <- geneIDs$entrezgene[idx]
 
 # Show only significant genes
-sig_res <- subset(res_out, padj < 0.05)
+sig_results <- subset(res_out, padj < 0.05)
 
 # Get summary of significant genes
-summary(sig_res)
+summary(sig_results)
 
 ```
 
@@ -254,7 +259,6 @@ summary(sig_res)
 library(clusterProfiler)
 
 # Convert geneID's to EntrezID or use column create from annotation step.
-
 
 ```
 

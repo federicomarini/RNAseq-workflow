@@ -4,7 +4,7 @@
 #$ -N RNAseq_Workflow
 #$ -e workflow_error.txt
 #$ -o workflow_stdout.txt
-#$ -pe threaded 4
+#$ -pe threaded 6
 #$ -l mem_free=8G
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
@@ -56,14 +56,12 @@ elif [[ -z $(fastqc --version) ]]; then
 fi
 
 
-
-
 # - - - - - - - - - - - -
 # Set default variables
 # - - - - - - - - - - - -
 
 # Input/Output
-inputFiles=input/*.fastq.gz
+inputFiles=input/*
 outputFolder="output.$(date +%F_%R)"
 mkdir -p outputFolder
 
@@ -104,7 +102,11 @@ mkdir -p $outputQcFolder
 
 # Run Quality Analysis on Raw Reads
 for seq in $inputFiles; do
-  fastqc -o $outputQcFolder --noextract -t 12 $seq
+  fastqc \
+    -o $outputQcFolder \
+    --noextract \
+    -t $NSLOTS \
+    $seq
 done
 
 
@@ -159,7 +161,7 @@ for trim in $outputTrimFolder/*.fq; do
     --other ${sortMeRnaFiltered}/${FQ}_filtered \
     --fastx \
     --log \
-    -a 12 \
+    -a $NSLOTS \
     -v
 
     # Move Log Files into correct order
@@ -183,6 +185,26 @@ mkdir -p $alignedLog
 mkdir -p $alignedStat
 
 # Run STAR-aligner
+for seq in $sortMeRnaFiltered*; do
+
+    # Get basename and directory
+    seq_dir=$(dirname ${seq})/
+    baseName=`basename $seq .fq`
+
+    # STAR
+    STAR \
+    --genomeDir $genomeIndex \
+    --readFilesIn $seq \
+    --runThreadN $NSLOTS \
+    --outFileNamePrefix $AlignedSequences/$baseName \
+    --outSAMtype BAM SortedByCoordinate \
+    --quantMode GeneCounts \
+    --readFilesCommand zcat
+
+    # gzip to save space
+    gzip $seq
+
+done
 
 
 # Move Log Files into correct folder
@@ -220,8 +242,15 @@ for seq in $alignedSequences/*.bam; do
 done
 
 
+# - - - - - - - - - - - - - -
+# Run Subread (featureCounts)
+# - - - - - - - - - - - - - -
+echo "Summarizing gene counts..."
+mkdir -p $finalCounts
 
-
-
-
-
+# Run featureCounts
+featureCounts \
+-a $annotationFile \
+-o $finalCounts/final_counts.txt \
+-T $NSLOTS \
+$alignedBAM/*

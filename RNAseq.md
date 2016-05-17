@@ -92,20 +92,20 @@ A host genome and annotation file are required for a complete RNAseq analysis. T
 
 #### 3A. Human genome
 ```bash
-# Download human genome
+# Download human genome to the 'genome' folder
 wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.transcripts.fa.gz
 
-# Download genome annotation file
+# Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.annotation.gtf.gz
 
 ```
 
 ##### 3B. Mouse genome
 ```bash
-# Download mouse genome
+# Download mouse genome to the 'genome' folder
 wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
 
-# Download genome annotation file
+# Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
 ```
 
@@ -116,16 +116,13 @@ If you are not working with a mouse or human genome, see the following websites 
 -----
 
 ### 4. Generate STAR aligner index
-The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download 
-
-The 
-**genomeDir**
+The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your dataset.
 
 ```bash
 # Download index job file
-wget 
+wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
-# Submit the make_index.sh as a job with arguments
+# Submit the make_index.sh as a job with read legnth as an argument
 qsub make_index.sh 50
 ```
 
@@ -139,10 +136,10 @@ wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_wo
 ```
 
 Before submitting the command, make sure you change the variables within the file to reflect your data set.  
-**sequenceLength** :  The length of the reads in each file. (Typically 50 or 100)
-**qualityCutoff** : The minimum Phred score to retain nucleotides
-**trimLength** :  The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)
-**trimAdapterSeq** : The nucloetide sequence associated with  
+**sequenceLength** :  The length of the reads in each file. (Typically 50 or 100)  
+**qualityCutoff** : The minimum Phred score to retain nucleotides  
+**trimLength** :  The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)  
+**trimAdapterSeq** : The nucloetide sequence  
 
 -----
 
@@ -165,19 +162,69 @@ One additional required file which is needed is a type of mapping file. This can
 library(DESEq2)
 library(ggplot2)
 
+# Import counts table from featureCounts
 
+# Import metadata (or create a new dataframe)
+
+# Relevel so we know whats control group
+metadatas$Group <- relevel(targets$Group, ref = "CON")
+
+# Make Deseq2 object from featureCounts object -----------
+ddsMat <- DESeqDataSetFromMatrix(countData = countsTable$counts,
+                                 colData = metadata,
+                                 design = ~Group)
+                                 
+# Run DESEq2
+ddsMat <- DESeq(ddsMat)
+
+# Get results from testing
+res_out <- results(ddsMat, pAdjustMethod = "fdr")
+
+# Generate summary of testing
+summary(res_out)
 ```
 
 -----
 
 ### 8. Add gene annotation information to results table
+Depending upon the dataset, you may have to change the database for gene annotation.  
+**Human** : ```itridecemlineatus_gene_ensembl```   
+**Mouse** : ```itridecemlineatus_gene_ensembl```   
+**Squirrel** : ```itridecemlineatus_gene_ensembl```  
+**More** :    
 ```R
-# Load required libraries
+# Run this command to get a list of available marts
+biomaRt::listDatasets(useEnsembl(biomart="ensembl"))
+```
+
+```R
+# Load library
 library(biomaRt)
 
-# Convert gene identifers to complete names/descriptions
+# Get information from ENSEMBL (change mart depending upon species)
+geneIDs <- getBM(filters = "ensembl_gene_id", 
+                 attributes = c("ensembl_gene_id", 
+                                "external_gene_name", 
+                                "description", 
+                                "entrezgene"), 
+                 values = row.names(res_out), 
+                 mart = useMart("ensembl", dataset = ""), 
+                 uniqueRows = T)
+                 
+idx <- match(row.names(res_out), geneIDs$ensembl_gene_id)
+res_out$ensembl_gene_id <- row.names(res_out)
+res_out$gene_name <- geneIDs$external_gene_name[idx]
+res_out$description <- geneIDs$description[idx]
+res_out$entrez <- geneIDs$entrezgene[idx]
+
+# Show only significant genes
+sig_res <- subset(res_out, padj < 0.05)
+
+# Get summary of significant genes
+summary(sig_res)
 
 ```
+
 
 -----
 
@@ -186,7 +233,8 @@ library(biomaRt)
 # Load required libraries
 library(clusterProfiler)
 
-# Convert result files to 
+# Convert geneID's to EntrezID or use column create from annotation step.
+
 
 ```
 

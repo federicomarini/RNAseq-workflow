@@ -195,6 +195,7 @@ tools/sortmerna-2.1-linux-64/sortmerna --version
 </div>
 <div id="download-host-genome-and-annotation-file" class="section level3">
 <h3>3. Download host genome and annotation file</h3>
+<p>A host genome and annotation file are required for a complete RNAseq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.</p>
 <div id="a.-human-genome" class="section level4">
 <h4>3A. Human genome</h4>
 <pre class="bash"><code># Download human genome
@@ -220,8 +221,12 @@ wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/
 </div>
 <div id="generate-star-aligner-index" class="section level3">
 <h3>4. Generate STAR aligner index</h3>
-<p>The STAR aligner requires an index to be created before aligning any <code>fastq</code> sequences. The index command requires the host genome of interest and associated annotation file as inputs.</p>
-<pre class="bash"><code></code></pre>
+<p>The STAR aligner requires an index to be created before aligning any <code>fastq</code> sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your dataset.</p>
+<pre class="bash"><code># Download index job file
+wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
+
+# Submit the make_index.sh as a job with read legnth as an argument
+qsub make_index.sh 50</code></pre>
 <hr />
 </div>
 <div id="download-workflow-and-change-parameters" class="section level3">
@@ -229,7 +234,10 @@ wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/
 <p>Once the index has been generated and all of the tools are installed, it is time to start the alignment workflow. The workflow is stored as a shell file which has <code>for</code> loops to iterate over each input <code>fastq</code> file. This setup allows the shell file to be submitted to the cluster as a job. The workflow will place files generated during processing into the correct folders.</p>
 <pre class="bash"><code>wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow.sh</code></pre>
 <p>Before submitting the command, make sure you change the variables within the file to reflect your data set.<br />
-<strong>sequenceLength</strong> : The length of the reads in each file. (Typically 50 or 100) <strong>qualityCutoff</strong> : The minimum Phred score to retain nucleotides <strong>trimLength</strong> : The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater) <strong>trimAdapterSeq</strong> : The nucloetide sequence associated with</p>
+<strong>sequenceLength</strong> : The length of the reads in each file. (Typically 50 or 100)<br />
+<strong>qualityCutoff</strong> : The minimum Phred score to retain nucleotides<br />
+<strong>trimLength</strong> : The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)<br />
+<strong>trimAdapterSeq</strong> : The nucloetide sequence</p>
 <hr />
 </div>
 <div id="run-the-workflow" class="section level3">
@@ -248,15 +256,61 @@ wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/
 library(DESEq2)
 library(ggplot2)
 
-</code></pre>
+# Import counts table from featureCounts
+
+# Import metadata (or create a new dataframe)
+
+# Relevel so we know whats control group
+metadatas$Group &lt;- relevel(targets$Group, ref = &quot;CON&quot;)
+
+# Make Deseq2 object from featureCounts object -----------
+ddsMat &lt;- DESeqDataSetFromMatrix(countData = countsTable$counts,
+                                 colData = metadata,
+                                 design = ~Group)
+                                 
+# Run DESEq2
+ddsMat &lt;- DESeq(ddsMat)
+
+# Get results from testing
+res_out &lt;- results(ddsMat, pAdjustMethod = &quot;fdr&quot;)
+
+# Generate summary of testing
+summary(res_out)</code></pre>
 <hr />
 </div>
 <div id="add-gene-annotation-information-to-results-table" class="section level3">
 <h3>8. Add gene annotation information to results table</h3>
-<pre class="r"><code># Load required libraries
+<p>Depending upon the dataset, you may have to change the database for gene annotation.<br />
+<strong>Human</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
+<strong>Mouse</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
+<strong>Squirrel</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
+<strong>More</strong> :</p>
+<pre class="r"><code># Run this command to get a list of available marts
+biomaRt::listDatasets(useEnsembl(biomart=&quot;ensembl&quot;))</code></pre>
+<pre class="r"><code># Load library
 library(biomaRt)
 
-# Convert gene identifers to complete names/descriptions
+# Get information from ENSEMBL (change mart depending upon species)
+geneIDs &lt;- getBM(filters = &quot;ensembl_gene_id&quot;, 
+                 attributes = c(&quot;ensembl_gene_id&quot;, 
+                                &quot;external_gene_name&quot;, 
+                                &quot;description&quot;, 
+                                &quot;entrezgene&quot;), 
+                 values = row.names(res_out), 
+                 mart = useMart(&quot;ensembl&quot;, dataset = &quot;&quot;), 
+                 uniqueRows = T)
+                 
+idx &lt;- match(row.names(res_out), geneIDs$ensembl_gene_id)
+res_out$ensembl_gene_id &lt;- row.names(res_out)
+res_out$gene_name &lt;- geneIDs$external_gene_name[idx]
+res_out$description &lt;- geneIDs$description[idx]
+res_out$entrez &lt;- geneIDs$entrezgene[idx]
+
+# Show only significant genes
+sig_res &lt;- subset(res_out, padj &lt; 0.05)
+
+# Get summary of significant genes
+summary(sig_res)
 </code></pre>
 <hr />
 </div>
@@ -265,7 +319,8 @@ library(biomaRt)
 <pre class="r"><code># Load required libraries
 library(clusterProfiler)
 
-# Convert result files to 
+# Convert geneID's to EntrezID or use column create from annotation step.
+
 </code></pre>
 </div>
 <div id="citations" class="section level3">

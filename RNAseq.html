@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
 
 
 
@@ -38,25 +38,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 
 
-
-</head>
-
-<body>
-
 <style type="text/css">
-.main-container {
-  max-width: 940px;
-  margin-left: auto;
-  margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
-img {
-  max-width:100%;
-  height: auto;
-}
 h1 {
   font-size: 34px;
 }
@@ -77,6 +59,30 @@ h5 {
 }
 h6 {
   font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type="text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -105,6 +111,7 @@ $(document).ready(function () {
 
 
 <div class="fluid-row" id="header">
+
 
 
 
@@ -169,7 +176,7 @@ wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/tri
 
 # Unzip and remove compressed file
 unzip tools/trim_galore_v0.4.1.zip -d tools/
-rm tools/trim_galore_v0.4.1.zip
+rm -rf tools/trim_galore_v0.4.1.zip
 
 # Check if Trim galore! was installed properly
 tools/trim_galore_zip/trim_galore --version</code></pre>
@@ -181,14 +188,14 @@ wget -P tools/ http://bioinfo.lifl.fr/RNA/sortmerna/code/sortmerna-2.1-linux-64.
 
 # Unzip and remove compressed file
 tar -zxvf tools/sortmerna-2.1-linux-64.tar.gz -C tools/
-rm tools/sortmerna-2.1-linux-64.tar.gz
+rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 
 # Check if SortMeRNA was installed properly
-tools/sortmerna-2.1-linux-64/indexdb_rna --version
-tools/sortmerna-2.1-linux-64/sortmerna --version
+tools/sortmerna-2.1-linux-64/indexdb_rna --help
+tools/sortmerna-2.1-linux-64/sortmerna --help
 
 # Generate indexes for SortMeRNA
-
+(TODO)
 </code></pre>
 <hr />
 </div>
@@ -198,23 +205,31 @@ tools/sortmerna-2.1-linux-64/sortmerna --version
 <p>A host genome and annotation file are required for a complete RNAseq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.</p>
 <div id="a.-human-genome" class="section level4">
 <h4>3A. Human genome</h4>
-<pre class="bash"><code># Download human genome
+<pre class="bash"><code># Download human genome to the 'genome' folder
 wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.transcripts.fa.gz
 
-# Download genome annotation file
+# Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.annotation.gtf.gz
-</code></pre>
+
+# Decompress
+gunzip genome/gencode.v24.transcripts.fa.gz
+gunzip annotation/gencode.v24.annotation.gtf.gz</code></pre>
 <div id="b.-mouse-genome" class="section level5">
 <h5>3B. Mouse genome</h5>
-<pre class="bash"><code># Download mouse genome
-wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
+<pre class="bash"><code># Download mouse genome to the 'genome' folder
+wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
 
-# Download genome annotation file
-wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz</code></pre>
+# Download genome annotation file to the 'annotation' folder
+wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
+
+# Decompress
+gunzip genome/gencode.vM9.transcripts.fa.gz
+gunzip annotation/gencode.vM9.annotation.gtf.gz</code></pre>
 </div>
 <div id="c.-other-genome" class="section level5">
 <h5>3C. Other genome</h5>
-<p>If you are not working with a mouse or human genome, see the following websites for a complete listing. (TODO)</p>
+<p>If you are not working with a mouse or human genome, see the following websites for a complete listing. <a href="https://genome.ucsc.edu/cgi-bin/hgGateway" class="uri">https://genome.ucsc.edu/cgi-bin/hgGateway</a><br />
+<a href="http://useast.ensembl.org/info/data/ftp/index.html" class="uri">http://useast.ensembl.org/info/data/ftp/index.html</a></p>
 <hr />
 </div>
 </div>
@@ -281,7 +296,7 @@ summary(res_out)</code></pre>
 <div id="add-gene-annotation-information-to-results-table" class="section level3">
 <h3>8. Add gene annotation information to results table</h3>
 <p>Depending upon the dataset, you may have to change the database for gene annotation.<br />
-<strong>Human</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
+<strong>Human</strong> : <code>hsapiens_gene_ensembl</code><br />
 <strong>Mouse</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
 <strong>Squirrel</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
 <strong>More</strong> :</p>

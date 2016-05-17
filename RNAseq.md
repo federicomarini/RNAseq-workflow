@@ -59,7 +59,7 @@ wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/tri
 
 # Unzip and remove compressed file
 unzip tools/trim_galore_v0.4.1.zip -d tools/
-rm tools/trim_galore_v0.4.1.zip
+rm -rf tools/trim_galore_v0.4.1.zip
 
 # Check if Trim galore! was installed properly
 tools/trim_galore_zip/trim_galore --version
@@ -74,14 +74,14 @@ wget -P tools/ http://bioinfo.lifl.fr/RNA/sortmerna/code/sortmerna-2.1-linux-64.
 
 # Unzip and remove compressed file
 tar -zxvf tools/sortmerna-2.1-linux-64.tar.gz -C tools/
-rm tools/sortmerna-2.1-linux-64.tar.gz
+rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 
 # Check if SortMeRNA was installed properly
-tools/sortmerna-2.1-linux-64/indexdb_rna --version
-tools/sortmerna-2.1-linux-64/sortmerna --version
+tools/sortmerna-2.1-linux-64/indexdb_rna --help
+tools/sortmerna-2.1-linux-64/sortmerna --help
 
 # Generate indexes for SortMeRNA
-
+(TODO)
 
 ```
 
@@ -98,20 +98,28 @@ wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/genc
 # Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.annotation.gtf.gz
 
+# Decompress
+gunzip genome/gencode.v24.transcripts.fa.gz
+gunzip annotation/gencode.v24.annotation.gtf.gz
 ```
 
 ##### 3B. Mouse genome
 ```bash
 # Download mouse genome to the 'genome' folder
-wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
+wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
 
 # Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
+
+# Decompress
+gunzip genome/gencode.vM9.transcripts.fa.gz
+gunzip annotation/gencode.vM9.annotation.gtf.gz
 ```
 
 ##### 3C. Other genome
 If you are not working with a mouse or human genome, see the following websites for a complete listing.
-(TODO)
+https://genome.ucsc.edu/cgi-bin/hgGateway  
+http://useast.ensembl.org/info/data/ftp/index.html  
 
 -----
 
@@ -188,7 +196,7 @@ summary(res_out)
 
 ### 8. Add gene annotation information to results table
 Depending upon the dataset, you may have to change the database for gene annotation.  
-**Human** : ```itridecemlineatus_gene_ensembl```   
+**Human** : ```hsapiens_gene_ensembl```   
 **Mouse** : ```itridecemlineatus_gene_ensembl```   
 **Squirrel** : ```itridecemlineatus_gene_ensembl```  
 **More** :    

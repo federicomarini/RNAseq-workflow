@@ -20,26 +20,27 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Load STAR
-module load STAR
+module load star/2.5.0c
 
 
 # - - - - - - - - - - - -
 # Set variables
 # - - - - - - - - - - - -
 readLength=expr $1 - 1
-genomeFile=genome/genome/*
+genomeFile=genome/*
 indexFolder="index/"
-annotationFile="annotation/*"
+annotationFile=annotation/*
 
 # - - - - - - - - - - - -
 # Verify script can run
 # - - - - - - - - - - - -
 
 # No STAR installation
-elif [[ -z $(STAR -version) ]]; then
+if [[ -z $(STAR -version) ]]; then
     echo "No STAR installation found! Exiting now."
     exit 1
 fi
+
 
 # Build an index for alignment. Only needs to be run once.
 STAR \

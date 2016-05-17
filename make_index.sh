@@ -1,36 +1,61 @@
-######################################
-# @ Thomas W. Battaglia
-# @ Thomas.battaglia@nyumc.org
-######################################
 #!/bin/bash
 #$ -cwd
 #$ -S /bin/bash
-#$ -M thomas.battaglia@nyumc.org
-#$ -N Workflow
-#$ -e error.txt
-#$ -o stdout.txt
+#$ -N STAR_Index
+#$ -e star_index_error.txt
+#$ -o star_index_stdout.txt
 #$ -pe threaded 16
 
-# Load Modules-------------------
-module load fastqc
-module load samtools
-module load samstat
+# - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @ Thomas W. Battaglia
+# tb1280@nyu.edu
+
+# make_index.sh
+# Arugment 1 = location of the genome (.fasta) file
+# Argument 2 = location of the annottion file (.gtf)
+# Argument 3 = location of the output folder. [Default = annotation/]
+# Argument 4 = The length of your RNAseq sequences [Default = 50]
+
+# This script will generate index files for STAR-aligner
+# before use with RNAseq data alignment. This file can
+# can be submitted as a job if on a proper cluster
+# enviroment.
+# - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Load STAR
+module load STAR
 
 
-# Initializers-------------------
-InitalQC=0
-RemoveAdapters=0
-RemoveRNA=0
-IndexGenome=0
-AlignSequences=1
+# Set custom variables
+if [$readLength] ;then
+echo 'Error! No STAR aligner is in your path! Please try to re-install STAR '
+fi
+
+readLength = $1-1
+
+
+$1=genomeInput
+$2=annotationInput
+$3=indexOutput
+
+# Check to make sure STAR aligner is in PATH
+if [-z (STAR --version)] ;then
+    echo 'Error! No STAR aligner is in your path! Please try to re-install STAR '
+fi
+
+#
+STAR --runMode genomeGenerate \
+--genomeDir $GenomeIndex \
+--genomeFastaFiles $Genome \
+
+
+# Build an index for alignment. Only needs to be run once.
+chmod +x packages/STAR/bin/Linux_x86_64/STAR
+packages/STAR/bin/Linux_x86_64/STAR --runMode genomeGenerate --genomeDir $GenomeIndex --genomeFastaFiles $Genome --sjdbGTFfile $GenomeGTF --sjdbOverhang 49 --runThreadN 16
+fi
 
 
 
-
-
-
-
-# Check to make sure the program can run
 
 
 

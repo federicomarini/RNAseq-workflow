@@ -4,7 +4,7 @@
 #$ -N RNAseq_Workflow
 #$ -e workflow_error.txt
 #$ -o workflow_stdout.txt
-#$ -pe threaded 6
+#$ -pe threaded 16
 #$ -l mem_free=8G
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@
 # Variables to set
 # - - - - - - - - - - - 
 qualityCutoff=20
-trimLength=20
+trimLength=50
 
 
 # - - - - - - - - - - -
@@ -33,6 +33,22 @@ module load samstat/1.09
 module load star/2.5.0c
 module load subread/1.4.6-p3
 module load fastqc/0.11.4
+
+
+# - - - - - - - - - - - - - - - - -
+# Print cluster info
+# - - - - - - - - - - - - - - - - -
+echo "- - - - Diagnostics - - - - -"
+echo "Number of slots: $NSLOTS"
+echo "Number of hosts: $NHOSTS"
+echo "Number in Queue: $QUEUE"
+echo "OS type: $SGE_ARCH"
+echo ""
+echo "Run parameters:"
+hostname -f
+date
+pwd
+echo "- - - - - - - - - - - - - - -"
 
 
 # - - - - - - - - - - - -
@@ -62,12 +78,13 @@ fi
 
 # Input/Output
 inputFiles=input/*
-outputFolder="output.$(date +%F_%R)"
-mkdir -p outputFolder
+#outputFolder="output.$(date +%F_%R)"
+outputFolder="outputFolder"
+mkdir -p $outputFolder
 
 # Genome/Annotation
 genomeFile=genome/*
-indexFolder="index/"
+indexFolder=index/
 annotationFile=annotation/*
 
 # SortMeRNA Location
@@ -189,20 +206,20 @@ for seq in $sortMeRnaFiltered*; do
 
     # Get basename and directory
     seq_dir=$(dirname ${seq})/
-    baseName=`basename $seq .fq`
+    baseName=`basename $seq .fq.gz`
+
+    # Remove the last '_trimmed_filtered' to make the naming cleaner
+    baseNameClean=${baseName%?????????????????}
 
     # STAR
     STAR \
-    --genomeDir $genomeIndex \
+    --genomeDir $indexFolder \
     --readFilesIn $seq \
     --runThreadN $NSLOTS \
-    --outFileNamePrefix $AlignedSequences/$baseName \
+    --outFileNamePrefix $alignedSequences/$baseNameClean \
     --outSAMtype BAM SortedByCoordinate \
     --quantMode GeneCounts \
     --readFilesCommand zcat
-
-    # gzip to save space
-    gzip $seq
 
 done
 
@@ -210,11 +227,6 @@ done
 # Move Log Files into correct folder
 for log in $alignedSequences/*Log.final.out; do
     mv $log $alignedLog/
-done
-
-# Move Samstat to correct folder
-for html in $alignedSequences/*.html; do
-    mv $html $alignedStat/
 done
 
 # Remove *Log.out files
@@ -232,6 +244,11 @@ for seq in $alignedSequences/*out.tab; do
     rm -rf $seq
 done
 
+# Remove leftover TEMP folders
+for tmp in $alignedSequences/*_STARtmp; do
+    rm -rf $tmp
+done
+
 
 # - - - - - - - - - - - - -
 # Run samtools + move BAM
@@ -241,6 +258,11 @@ for seq in $alignedSequences/*.bam; do
     mv $seq $alignedBAM/
 done
 
+# Move Samstat to correct folder
+for html in $alignedSequences/*.html; do
+    mv $html $alignedStat/
+done
+
 
 # - - - - - - - - - - - - - -
 # Run Subread (featureCounts)
@@ -248,9 +270,16 @@ done
 echo "Summarizing gene counts..."
 mkdir -p $finalCounts
 
+# Store list of files as a variable
+dirlist=$(ls -t $alignedBAM/* | tr '\n' ' ')
+
 # Run featureCounts
 featureCounts \
 -a $annotationFile \
 -o $finalCounts/final_counts.txt \
 -T $NSLOTS \
-$alignedBAM/*
+$dirlist
+
+
+# End of script
+echo "RNAseq completed!"

@@ -42,6 +42,8 @@ if [[ -z $(STAR --version) ]]; then
     exit 1
 fi
 
+# unzip if compressed
+gunzip $genomeFile
 
 # Build an index for alignment. Only needs to be run once.
 STAR \
@@ -51,6 +53,9 @@ STAR \
 --sjdbGTFfile $annotationFile \
 --sjdbOverhang $readLength \
 --runThreadN 12
+
+# Remove temporary files
+
 
 # Message completed
 echo 'STAR Index generated!'

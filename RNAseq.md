@@ -1,3 +1,6 @@
+---
+output: html_document
+---
 # RNAseq Workflow
 #### Thomas W. Battaglia
 #### tb1280@nyu.edu
@@ -24,11 +27,11 @@ mkdir new_analysis
 cd new_analysis
 
 # Make sub-directories to store:
-mkdir -p input
-mkdir -p genome
-mkdir -p annotation
-mkdir -p index
-mkdir -p tools
+mkdir input
+mkdir genome
+mkdir annotation
+mkdir index
+mkdir tools
 ```
 
 -----
@@ -43,7 +46,7 @@ Other tools that are required for processing are:
 **samstat** (link)  
 **Subread** (link)  
 **CutAdapt** (link)  
-If the python package CutAdapt is not on your cluster environment, you can install a local copy by running the command below:
+If the python package Cutadapt is not on your cluster environment, you can install a local copy by running the command below:
 ```bash
 pip install cutadapt --user
 ```
@@ -83,7 +86,6 @@ tools/sortmerna-2.1-linux-64/sortmerna --help
 
 Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesn't require too much computation.
 ```bash
-
 # Set variable for location of index files
 sortmernaDB="tools/sortmerna-2.1-linux-64"
 
@@ -138,7 +140,7 @@ http://useast.ensembl.org/info/data/ftp/index.html
 -----
 
 ### 4. Generate STAR aligner index
-The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your dataset.
+The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your data set.
 
 ```bash
 # Download index job file
@@ -175,34 +177,57 @@ qsub run_workflow.sh
 Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis. 
 
 One additional required file which is needed is a type of mapping file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).
+
+#####  First install the required packages for analysis. It is best to use an IDE like RSudio for the analysis  
+(https://www.rstudio.com/products/rstudio/download/)
 ```R
 # Install required libraries
+source("https://bioconductor.org/biocLite.R")
+biocLite("DESeq2")
+biocLite("ggplot2")
+biocLite("clusterProfiler")
+biocLite("biomaRt")
+biocLite("ReactomePA")
+biocLite("DOSE")
+biocLite("pathview")
+biocLite("org.Mm.eg.db")
+```
 
+
+#### Set the working directory to the output folder or create a new project in RStudio.
+
+```R
 # Load required libraries
 library(DESEq2)
 library(ggplot2)
 
 # Import counts table from featureCounts
-counts <- read.delim("")
+# Skip first row (or delete before import)
+counts <- read.delim("outputFolder/final_counts/final_counts.txt", skip = 1)
 
 # Import metadata (or create a new dataframe)
-metadata <- read.delim("")
+# The sample identifers must be the row names for the dataframe and must match the names of the counts table columns.
+metadata <- read.delim("sample_mapping_file.txt", row.names = 1)
 
-# Relevel so we know whats control group
-metadatas$Group <- relevel(targets$Group, ref = "Control")
+# Relevel (if needed) to know which group is the reference (control)
+metadatas$Group <- relevel(metadata$Group, ref = "Control")
 
 # Make DESeq2 object from featureCounts object 
-ddsMat <- DESeqDataSetFromMatrix(countData = countsTable$counts,
+# countData : count dataframe
+# colData : sample metadata in the dataframe with row names as sampleID's
+# design : The design of the comparisons to use. Use (~) before the name of the column variable to compare
+ddsMat <- DESeqDataSetFromMatrix(countData = counts,
                                  colData = metadata,
                                  design = ~Group)
                                  
 # Run DESEq2
 ddsMat <- DESeq(ddsMat)
 
-# Get results from testing
+# Get results from testing with FDR adjust pvalues
 res_out <- results(ddsMat, pAdjustMethod = "fdr")
 
-# Generate summary of testing
+# Generate summary of testing. 
+# q-value cutoff is 1% by default.
 summary(res_out)
 ```
 
@@ -213,7 +238,6 @@ Depending upon the data set, you may have to change the database for gene annota
 **Human** : ```hsapiens_gene_ensembl```   
 **Mouse** : ```mmusculus_gene_ensembl```   
 **Squirrel** : ```itridecemlineatus_gene_ensembl```  
-**More** :    
 ```R
 # Run this command to get a list of available marts
 biomaRt::listDatasets(useEnsembl(biomart="ensembl"))
@@ -243,23 +267,75 @@ res_out$description <- geneIDs$description[idx]
 res_out$entrez <- geneIDs$entrezgene[idx]
 
 # Show only significant genes
-sig_results <- subset(res_out, padj < 0.05)
+res_out_sig <- subset(res_out, padj < 0.05)
 
 # Get summary of significant genes
-summary(sig_results)
+summary(res_out_sig)
 
 ```
 
 
 -----
 
-### 9. Pathway analysis on resulting DE genes
+### 9. Pathway analysis on DE genes. 
+The code below assumes you have RNA seq results from the mouse genome.  
+Get more information about clusterProfiler here: http://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html
 ```R
 # Load required libraries
 library(clusterProfiler)
+library(ReactomePA)
+library(KEGG.db)
+library(DOSE)
+library(pathview)
+library(org.Mm.eg.db)
 
-# Convert geneID's to EntrezID or use column create from annotation step.
+# Create a matrix of gene entrez ID's and log fold changes
+gene_matrix <- res_out_sig$logFC
+names(gene_matrix) <- res_out_sig$entrez
 
+
+# - - - - - - - - - - - - - 
+# Enrich with KEGG database
+# - - - - - - - - - - - - - 
+kegg_enrich <- enrichKEGG(gene = gene_matrix,
+                 organism = 'mouse',
+                 pvalueCutoff = 0.05, 
+                 readable = TRUE)
+                 
+# Get table of results
+summary(kegg_enrich)
+
+# Plot results
+barplot(kegg_enrich, drop=TRUE, showCategory=12)
+
+# Plot specific KEGG pathways (w fold change) with pathview
+# pathway.id : KEGG pathway
+pathview(gene.data = gene_matrix, pathway.id = "04940", species = "mouse", map.symbol = T)
+
+
+# - - - - - - - - - - - - - 
+# Enrich with GO databse
+# - - - - - - - - - - - - - 
+go_enrich <- groupGO(gene = gene_matrix,
+               organism = 'mouse',
+               ont = "BP",
+               level = 3,
+               readable = TRUE)
+
+# Get table of results
+summary(go_enrich)
+
+# Plot results
+barplot(go_enrich, drop=TRUE, showCategory=12)
+
+
+# - - - - - - - - - - - - - 
+# Enrich with ReactomeDB
+# - - - - - - - - - - - - - 
+reactome_enrich <- enrichPathway(gene = gene_matrix, organism = 'mouse', pvalueCutoff = 0.05)
+                 
+# Get table of results
+summary(reactome_enrich)
 ```
 
 

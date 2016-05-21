@@ -143,7 +143,7 @@ for trim in $inputFiles*; do
   $trim
 done
 
-# unzip all sequences
+# unzip all sequences (if needed)
 gunzip $outputTrimFolder/*.fq.gz
 
 
@@ -229,12 +229,12 @@ for log in $alignedSequences/*Log.final.out; do
     mv $log $alignedLog/
 done
 
-# Remove *Log.out files
+# Move *Log.out files
 for log in $alignedSequences/*Log.out; do
-    rm -rf $log
+    mv $log $alignedLog/
 done
 
-# Remove *Log.out files
+# Remove *Log.progress.out files
 for log in $alignedSequences/*Log.progress.out; do
     rm -rf $log
 done

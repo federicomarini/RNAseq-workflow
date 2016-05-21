@@ -148,11 +148,11 @@ mkdir new_analysis
 cd new_analysis
 
 # Make sub-directories to store:
-mkdir -p input
-mkdir -p genome
-mkdir -p annotation
-mkdir -p index
-mkdir -p tools</code></pre>
+mkdir input
+mkdir genome
+mkdir annotation
+mkdir index
+mkdir tools</code></pre>
 <hr />
 </div>
 <div id="installing-required-dependencies" class="section level3">
@@ -165,7 +165,7 @@ mkdir -p tools</code></pre>
 <strong>samstat</strong> (link)<br />
 <strong>Subread</strong> (link)<br />
 <strong>CutAdapt</strong> (link)<br />
-If the python package CutAdapt is not on your cluster environment, you can install a local copy by running the command below:</p>
+If the python package Cutadapt is not on your cluster environment, you can install a local copy by running the command below:</p>
 <pre class="bash"><code>pip install cutadapt --user</code></pre>
 <hr />
 <div id="a.-install-trim-galore" class="section level4">
@@ -194,8 +194,7 @@ rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 tools/sortmerna-2.1-linux-64/indexdb_rna --help
 tools/sortmerna-2.1-linux-64/sortmerna --help</code></pre>
 <p>Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesn’t require too much computation.</p>
-<pre class="bash"><code>
-# Set variable for location of index files
+<pre class="bash"><code># Set variable for location of index files
 sortmernaDB=&quot;tools/sortmerna-2.1-linux-64&quot;
 
 # Set location for database
@@ -247,7 +246,7 @@ gunzip annotation/gencode.vM9.annotation.gtf.gz</code></pre>
 </div>
 <div id="generate-star-aligner-index" class="section level3">
 <h3>4. Generate STAR aligner index</h3>
-<p>The STAR aligner requires an index to be created before aligning any <code>fastq</code> sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your dataset.</p>
+<p>The STAR aligner requires an index to be created before aligning any <code>fastq</code> sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your data set.</p>
 <pre class="bash"><code># Download index job file
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
@@ -274,43 +273,63 @@ qsub make_index.sh 50</code></pre>
 <h3>7. Import count table to DESeq2 and run differential expression analysis</h3>
 <p>Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis.</p>
 <p>One additional required file which is needed is a type of mapping file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).</p>
+<div id="first-install-the-required-packages-for-analysis.-it-is-best-to-use-an-ide-like-rsudio-for-the-analysis" class="section level5">
+<h5>First install the required packages for analysis. It is best to use an IDE like RSudio for the analysis</h5>
+<p>(<a href="https://www.rstudio.com/products/rstudio/download/" class="uri">https://www.rstudio.com/products/rstudio/download/</a>)</p>
 <pre class="r"><code># Install required libraries
-
-# Load required libraries
+source(&quot;https://bioconductor.org/biocLite.R&quot;)
+biocLite(&quot;DESeq2&quot;)
+biocLite(&quot;ggplot2&quot;)
+biocLite(&quot;clusterProfiler&quot;)
+biocLite(&quot;biomaRt&quot;)
+biocLite(&quot;ReactomePA&quot;)
+biocLite(&quot;DOSE&quot;)
+biocLite(&quot;pathview&quot;)
+biocLite(&quot;org.Mm.eg.db&quot;)</code></pre>
+</div>
+<div id="set-the-working-directory-to-the-output-folder-or-create-a-new-project-in-rstudio." class="section level4">
+<h4>Set the working directory to the output folder or create a new project in RStudio.</h4>
+<pre class="r"><code># Load required libraries
 library(DESEq2)
 library(ggplot2)
 
 # Import counts table from featureCounts
-counts &lt;- read.delim(&quot;&quot;)
+# Skip first row (or delete before import)
+counts &lt;- read.delim(&quot;outputFolder/final_counts/final_counts.txt&quot;, skip = 1)
 
 # Import metadata (or create a new dataframe)
-metadata &lt;- read.delim(&quot;&quot;)
+# The sample identifers must be the row names for the dataframe and must match the names of the counts table columns.
+metadata &lt;- read.delim(&quot;sample_mapping_file.txt&quot;, row.names = 1)
 
-# Relevel so we know whats control group
-metadatas$Group &lt;- relevel(targets$Group, ref = &quot;Control&quot;)
+# Relevel (if needed) to know which group is the reference (control)
+metadatas$Group &lt;- relevel(metadata$Group, ref = &quot;Control&quot;)
 
 # Make DESeq2 object from featureCounts object 
-ddsMat &lt;- DESeqDataSetFromMatrix(countData = countsTable$counts,
+# countData : count dataframe
+# colData : sample metadata in the dataframe with row names as sampleID's
+# design : The design of the comparisons to use. Use (~) before the name of the column variable to compare
+ddsMat &lt;- DESeqDataSetFromMatrix(countData = counts,
                                  colData = metadata,
                                  design = ~Group)
                                  
 # Run DESEq2
 ddsMat &lt;- DESeq(ddsMat)
 
-# Get results from testing
+# Get results from testing with FDR adjust pvalues
 res_out &lt;- results(ddsMat, pAdjustMethod = &quot;fdr&quot;)
 
-# Generate summary of testing
+# Generate summary of testing. 
+# q-value cutoff is 1% by default.
 summary(res_out)</code></pre>
 <hr />
+</div>
 </div>
 <div id="add-gene-annotation-information-to-results-table" class="section level3">
 <h3>8. Add gene annotation information to results table</h3>
 <p>Depending upon the data set, you may have to change the database for gene annotation.<br />
 <strong>Human</strong> : <code>hsapiens_gene_ensembl</code><br />
 <strong>Mouse</strong> : <code>mmusculus_gene_ensembl</code><br />
-<strong>Squirrel</strong> : <code>itridecemlineatus_gene_ensembl</code><br />
-<strong>More</strong> :</p>
+<strong>Squirrel</strong> : <code>itridecemlineatus_gene_ensembl</code></p>
 <pre class="r"><code># Run this command to get a list of available marts
 biomaRt::listDatasets(useEnsembl(biomart=&quot;ensembl&quot;))</code></pre>
 <pre class="r"><code># Load library
@@ -336,24 +355,83 @@ res_out$description &lt;- geneIDs$description[idx]
 res_out$entrez &lt;- geneIDs$entrezgene[idx]
 
 # Show only significant genes
-sig_results &lt;- subset(res_out, padj &lt; 0.05)
+res_out_sig &lt;- subset(res_out, padj &lt; 0.05)
 
 # Get summary of significant genes
-summary(sig_results)
+summary(res_out_sig)
 </code></pre>
 <hr />
 </div>
-<div id="pathway-analysis-on-resulting-de-genes" class="section level3">
-<h3>9. Pathway analysis on resulting DE genes</h3>
+<div id="pathway-analysis-on-de-genes." class="section level3">
+<h3>9. Pathway analysis on DE genes.</h3>
+<p>The code below assumes you have RNA seq results from the mouse genome.<br />
+Get more information about clusterProfiler here: <a href="http://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html" class="uri">http://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html</a></p>
 <pre class="r"><code># Load required libraries
 library(clusterProfiler)
+library(ReactomePA)
+library(KEGG.db)
+library(DOSE)
+library(pathview)
+library(org.Mm.eg.db)
 
-# Convert geneID's to EntrezID or use column create from annotation step.
-as(sig_results, 'data.frame')
-</code></pre>
+# Create a matrix of gene entrez ID's and log fold changes
+gene_matrix &lt;- res_out_sig$logFC
+names(gene_matrix) &lt;- res_out_sig$entrez
+
+
+# - - - - - - - - - - - - - 
+# Enrich with KEGG database
+# - - - - - - - - - - - - - 
+kegg_enrich &lt;- enrichKEGG(gene = gene_matrix,
+                 organism = 'mouse',
+                 pvalueCutoff = 0.05, 
+                 readable = TRUE)
+                 
+# Get table of results
+summary(kegg_enrich)
+
+# Plot results
+barplot(kegg_enrich, drop=TRUE, showCategory=12)
+
+# Plot specific KEGG pathways (w fold change) with pathview
+# pathway.id : KEGG pathway
+pathview(gene.data = gene_matrix, pathway.id = &quot;04940&quot;, species = &quot;mouse&quot;, map.symbol = T)
+
+
+# - - - - - - - - - - - - - 
+# Enrich with GO databse
+# - - - - - - - - - - - - - 
+go_enrich &lt;- groupGO(gene = gene_matrix,
+               organism = 'mouse',
+               ont = &quot;BP&quot;,
+               level = 3,
+               readable = TRUE)
+
+# Get table of results
+summary(go_enrich)
+
+# Plot results
+barplot(go_enrich, drop=TRUE, showCategory=12)
+
+
+# - - - - - - - - - - - - - 
+# Enrich with ReactomeDB
+# - - - - - - - - - - - - - 
+reactome_enrich &lt;- enrichPathway(gene = gene_matrix, organism = 'mouse', pvalueCutoff = 0.05)
+                 
+# Get table of results
+summary(reactome_enrich)</code></pre>
 </div>
 <div id="citations" class="section level3">
 <h3>Citations:</h3>
+<p>Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. Available online at: <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc" class="uri">http://www.bioinformatics.babraham.ac.uk/projects/fastqc</a></p>
+<p>Martin, Marcel. Cutadapt removes adapter sequences from high-throughput sequencing reads. EMBnet.journal, [S.l.], v. 17, n. 1, p. pp. 10-12, may. 2011. ISSN 2226-6089. Available at: <a href="http://journal.embnet.org/index.php/embnetjournal/article/view/200" class="uri">http://journal.embnet.org/index.php/embnetjournal/article/view/200</a>. <a href="doi:http://dx.doi.org/10.14806/ej.17.1.200" class="uri">doi:http://dx.doi.org/10.14806/ej.17.1.200</a>.</p>
+<p>Kopylova E., Noé L. and Touzet H., “SortMeRNA: Fast and accurate filtering of ribosomal RNAs in metatranscriptomic data”, Bioinformatics (2012), doi: 10.1093/bioinformatics/bts611</p>
+<p>Dobin A, Davis CA, Schlesinger F, et al. STAR: ultrafast universal RNA-seq aligner. Bioinformatics. 2013;29(1):15-21. <a href="doi:10.1093/bioinformatics/bts635" class="uri">doi:10.1093/bioinformatics/bts635</a>.</p>
+<p>Lassmann et al. (2010) “SAMStat: monitoring biases in next generation sequencing data.” Bioinformatics <a href="doi:10.1093/bioinformatics/btq614" class="uri">doi:10.1093/bioinformatics/btq614</a> [PMID: 21088025]</p>
+<p>Liao Y, Smyth GK and Shi W (2014). featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics, 30(7):923-30.</p>
+<p>Love MI, Huber W and Anders S (2014). “Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2.” Genome Biology, 15, pp. 550.</p>
+<p>Yu G, Wang L, Han Y and He Q (2012). “clusterProfiler: an R package for comparing biological themes among gene clusters.” OMICS: A Journal of Integrative Biology, 16(5), pp. 284-287.</p>
 </div>
 </div>
 

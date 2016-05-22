@@ -106,7 +106,47 @@ tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF
 ### 3. Download host genome and annotation file
 A host genome and annotation file are required for a complete RNA seq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.
 
-#### 3A. Human genome
+
+#### 3A. Mouse genome
+There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment. ***See this paper for more information:***(TODO)  
+  
+
+##### Gencodes
+http://www.gencodegenes.org/mouse_releases/current.html
+```bash
+# Download mouse genome to the 'genome' folder
+wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
+
+# Download genome annotation file to the 'annotation' folder
+wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
+
+# Decompress
+gunzip genome/*
+gunzip annotation/*
+```
+
+#### Ensembl
+http://www.ensembl.org/info/data/ftp/index.html
+```bash
+# Download mouse genome to the 'genome' folder
+wget -P genome/ ftp://ftp.ensembl.org/pub/release-84/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
+
+# Download genome annotation file to the 'annotation' folder
+wget -P annotation/ ftp://ftp.ensembl.org/pub/release-84/gtf/mus_musculus/Mus_musculus.GRCm38.84.gtf.gz
+
+# Decompress
+gunzip genome/*
+gunzip annotation/*
+```
+
+#### UNSC
+```bash
+
+```
+
+
+#### 3B. Human genome
+
 ```bash
 # Download human genome to the 'genome' folder
 wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.transcripts.fa.gz
@@ -119,19 +159,6 @@ gunzip genome/gencode.v24.transcripts.fa.gz
 gunzip annotation/gencode.v24.annotation.gtf.gz
 ```
 
-##### 3B. Mouse genome
-```bash
-# Download mouse genome to the 'genome' folder
-wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
-
-# Download genome annotation file to the 'annotation' folder
-wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
-
-# Decompress
-gunzip genome/gencode.vM9.transcripts.fa.gz
-gunzip annotation/gencode.vM9.annotation.gtf.gz
-```
-
 ##### 3C. Other genome
 If you are not working with a mouse or human genome, see the following websites for a complete listing.
 https://genome.ucsc.edu/cgi-bin/hgGateway  
@@ -140,14 +167,14 @@ http://useast.ensembl.org/info/data/ftp/index.html
 -----
 
 ### 4. Generate STAR aligner index
-The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. There is only one argument needed, which is the total length of the reads in your data set.
+The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job.
 
 ```bash
 # Download index job file
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
-# Submit the make_index.sh as a job with read legnth as an argument
-qsub make_index.sh 50
+# Submit the make_index.sh as a job 
+qsub make_index.sh
 ```
 
 -----
@@ -174,12 +201,11 @@ qsub run_workflow.sh
 -----
 
 ### 7. Import count table to DESeq2 and run differential expression analysis
-Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis. 
+Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis. See this tutorial for more information about using DESeq2 http://www.bioconductor.org/help/workflows/rnaseqGene/
 
-One additional required file which is needed is a type of mapping file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).
+One additional required file which is needed, is a type of mapping file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).
 
-#####  First install the required packages for analysis. It is best to use an IDE like RSudio for the analysis  
-(https://www.rstudio.com/products/rstudio/download/)
+#####  First install the required packages for analysis. It is best to use an IDE like RSudio for the analysis: https://www.rstudio.com/products/rstudio/download/
 ```R
 # Install required libraries
 source("https://bioconductor.org/biocLite.R")
@@ -191,19 +217,22 @@ biocLite("ReactomePA")
 biocLite("DOSE")
 biocLite("pathview")
 biocLite("org.Mm.eg.db")
+biocLite("pheatmap")
+biocLite("genefilter")
 ```
 
-
-#### Set the working directory to the output folder or create a new project in RStudio.
-
+Be sure to copy the final_counts.txt file generate from featureCounts, to your working directory, or specific it when importing the table.  
 ```R
 # Load required libraries
 library(DESEq2)
 library(ggplot2)
 
+# Set working directory.
+setwd("~/path/to/working/directory/")
+
 # Import counts table from featureCounts
 # Skip first row (or delete before import)
-counts <- read.delim("outputFolder/final_counts/final_counts.txt", skip = 1)
+counts <- read.delim("~/path/to/working/directory/final_counts.txt", skip = 1)
 
 # Import metadata (or create a new dataframe)
 # The sample identifers must be the row names for the dataframe and must match the names of the counts table columns.
@@ -226,9 +255,15 @@ ddsMat <- DESeq(ddsMat)
 # Get results from testing with FDR adjust pvalues
 res_out <- results(ddsMat, pAdjustMethod = "fdr")
 
+# order results by padj value 
+res_out <- res_out[order(res_out$padj), ]
+
 # Generate summary of testing. 
 # q-value cutoff is 1% by default.
 summary(res_out)
+
+# Write the counts table with stats to .txt for use with GSEA
+write.table(as.data.frame(counts(ddsMat), normalized = T), file = 'DESeq2_normalized_counts.txt', sep = '\t')
 ```
 
 -----
@@ -266,11 +301,11 @@ res_out$gene_name <- geneIDs$external_gene_name[idx]
 res_out$description <- geneIDs$description[idx]
 res_out$entrez <- geneIDs$entrezgene[idx]
 
-# Show only significant genes
-res_out_sig <- subset(res_out, padj < 0.05)
+# Write the annotated results table to a .txt file
+write.table(as.data.frame(res_out), file = "DESEq2_results_gene_annotated.txt", sep = '\t')
 
-# Get summary of significant genes
-summary(res_out_sig)
+# Subset for only significant genes
+res_out_sig <- subset(res_out, padj < 0.05)
 
 ```
 

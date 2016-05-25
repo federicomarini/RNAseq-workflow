@@ -316,7 +316,7 @@ biocLite(&quot;RColorBrewer&quot;)</code></pre>
 library(DESeq2)
 library(ggplot2)
 
-# Set working directory.
+# Set working directory. (if needed)
 setwd(&quot;~/path/to/working/directory/&quot;)
 
 # Import counts table from featureCounts
@@ -353,9 +353,7 @@ res_out &lt;- res_out[order(res_out$padj), ]
 # Generate summary of testing. 
 # q-value cutoff is 1% by default.
 summary(res_out)
-
-# Write the counts table with stats to .txt for use with GSEA
-write.table(as.data.frame(counts(ddsMat), normalized = T), file = 'DESeq2_normalized_counts.txt', sep = '\t')</code></pre>
+</code></pre>
 <hr />
 </div>
 </div>
@@ -367,6 +365,8 @@ write.table(as.data.frame(counts(ddsMat), normalized = T), file = 'DESeq2_normal
 <strong>Squirrel</strong> : <code>itridecemlineatus_gene_ensembl</code></p>
 <pre class="r"><code># Run this command to get a list of available marts
 biomaRt::listDatasets(useEnsembl(biomart=&quot;ensembl&quot;))</code></pre>
+<div id="get-geneids-for-each-identifier-and-add-it-to-the-results-table" class="section level5">
+<h5>Get GeneID’s for each identifier and add it to the results table</h5>
 <pre class="r"><code># Load library
 library(biomaRt)
 
@@ -388,14 +388,42 @@ res_out$ensembl_gene_id &lt;- row.names(res_out)
 res_out$gene_name &lt;- geneIDs$external_gene_name[idx]
 res_out$description &lt;- geneIDs$description[idx]
 res_out$entrez &lt;- geneIDs$entrezgene[idx]
-
-# Write the annotated results table to a .txt file
-write.table(as.data.frame(res_out), file = &quot;DESEq2_results_gene_annotated.txt&quot;, sep = '\t')
-
-# Subset for only significant genes
+            
+# Subset for only significant genes (q&lt;0.05)
 res_out_sig &lt;- subset(res_out, padj &lt; 0.05)
+
 </code></pre>
+</div>
+<div id="write-all-the-important-results-to-.txt-files" class="section level5">
+<h5>Write all the important results to .txt files</h5>
+<pre class="r"><code># Write normalized gene counts to a .txt file
+write.table(x = as.data.frame(counts(ddsMat), normalized = T), 
+            file = 'DESeq2_normalized_counts.txt', 
+            sep = '\t', 
+            quote = F,
+            col.names = NA)
+
+# Write significant normalized gene counts to a .txt file
+write.table(x = counts(ddsMat[row.names(res_out_sig)], normalized = T), 
+            file = 'DESeq2_normalized_counts_significant.txt', 
+            sep = '\t', 
+            quote = F, 
+            col.names = NA)
+            
+# Write the annotated results table to a .txt file
+write.table(x = as.data.frame(res_out), 
+            file = &quot;DESEq2_results_gene_annotated.txt&quot;, 
+            sep = '\t', 
+            quote = F)
+
+# Write significant annotated results table to a .txt file
+write.table(x = as.data.frame(res_out_sig), 
+            file = &quot;DESEq2_results_gene_annotated_significant.txt&quot;, 
+            sep = '\t', 
+            quote = F,
+            col.names = NA)</code></pre>
 <hr />
+</div>
 </div>
 <div id="b.-make-heatmap-of-significant-genes" class="section level3">
 <h3>8b. Make heatmap of significant genes</h3>

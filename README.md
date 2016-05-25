@@ -229,7 +229,7 @@ Be sure to copy the final_counts.txt file generate from featureCounts, to your w
 library(DESeq2)
 library(ggplot2)
 
-# Set working directory.
+# Set working directory. (if needed)
 setwd("~/path/to/working/directory/")
 
 # Import counts table from featureCounts
@@ -267,8 +267,6 @@ res_out <- res_out[order(res_out$padj), ]
 # q-value cutoff is 1% by default.
 summary(res_out)
 
-# Write the counts table with stats to .txt for use with GSEA
-write.table(as.data.frame(counts(ddsMat), normalized = T), file = 'DESeq2_normalized_counts.txt', sep = '\t')
 ```
 
 -----
@@ -282,7 +280,7 @@ Depending upon the data set, you may have to change the database for gene annota
 # Run this command to get a list of available marts
 biomaRt::listDatasets(useEnsembl(biomart="ensembl"))
 ```
-
+##### Get GeneID's for each identifier and add it to the results table
 ```R
 # Load library
 library(biomaRt)
@@ -305,13 +303,41 @@ res_out$ensembl_gene_id <- row.names(res_out)
 res_out$gene_name <- geneIDs$external_gene_name[idx]
 res_out$description <- geneIDs$description[idx]
 res_out$entrez <- geneIDs$entrezgene[idx]
-
-# Write the annotated results table to a .txt file
-write.table(as.data.frame(res_out), file = "DESEq2_results_gene_annotated.txt", sep = '\t')
-
-# Subset for only significant genes
+            
+# Subset for only significant genes (q<0.05)
 res_out_sig <- subset(res_out, padj < 0.05)
 
+
+```
+
+##### Write all the important results to .txt files
+```R
+# Write normalized gene counts to a .txt file
+write.table(x = as.data.frame(counts(ddsMat), normalized = T), 
+            file = 'DESeq2_normalized_counts.txt', 
+            sep = '\t', 
+            quote = F,
+            col.names = NA)
+
+# Write significant normalized gene counts to a .txt file
+write.table(x = counts(ddsMat[row.names(res_out_sig)], normalized = T), 
+            file = 'DESeq2_normalized_counts_significant.txt', 
+            sep = '\t', 
+            quote = F, 
+            col.names = NA)
+            
+# Write the annotated results table to a .txt file
+write.table(x = as.data.frame(res_out), 
+            file = "DESEq2_results_gene_annotated.txt", 
+            sep = '\t', 
+            quote = F)
+
+# Write significant annotated results table to a .txt file
+write.table(x = as.data.frame(res_out_sig), 
+            file = "DESEq2_results_gene_annotated_significant.txt", 
+            sep = '\t', 
+            quote = F,
+            col.names = NA)
 ```
 
 -----

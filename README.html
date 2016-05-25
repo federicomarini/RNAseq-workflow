@@ -306,10 +306,14 @@ biocLite(&quot;biomaRt&quot;)
 biocLite(&quot;ReactomePA&quot;)
 biocLite(&quot;DOSE&quot;)
 biocLite(&quot;pathview&quot;)
-biocLite(&quot;org.Mm.eg.db&quot;)</code></pre>
+biocLite(&quot;org.Mm.eg.db&quot;)
+biocLite(&quot;pheatmap&quot;)
+biocLite(&quot;genefilter&quot;)
+biocLite(&quot;fdrtool&quot;)
+biocLite(&quot;RColorBrewer&quot;)</code></pre>
 <p>Be sure to copy the final_counts.txt file generate from featureCounts, to your working directory, or specific it when importing the table.</p>
 <pre class="r"><code># Load required libraries
-library(DESEq2)
+library(DESeq2)
 library(ggplot2)
 
 # Set working directory.
@@ -317,14 +321,17 @@ setwd(&quot;~/path/to/working/directory/&quot;)
 
 # Import counts table from featureCounts
 # Skip first row (or delete before import)
-counts &lt;- read.delim(&quot;~/path/to/working/directory/final_counts.txt&quot;, skip = 1)
+counts &lt;- read.delim(&quot;~/path/to/working/directory/final_counts.txt&quot;, skip = 1, row.names = 1)
+
+# Remove Length column
+counts &lt;- counts[,-1]
 
 # Import metadata (or create a new dataframe)
 # The sample identifers must be the row names for the dataframe and must match the names of the counts table columns.
 metadata &lt;- read.delim(&quot;sample_mapping_file.txt&quot;, row.names = 1)
 
 # Relevel (if needed) to know which group is the reference (control)
-metadatas$Group &lt;- relevel(metadata$Group, ref = &quot;Control&quot;)
+metadata$Group &lt;- relevel(metadata$Group, ref = &quot;Control&quot;)
 
 # Make DESeq2 object from featureCounts object 
 # countData : count dataframe
@@ -352,8 +359,8 @@ write.table(as.data.frame(counts(ddsMat), normalized = T), file = 'DESeq2_normal
 <hr />
 </div>
 </div>
-<div id="add-gene-annotation-information-to-results-table" class="section level3">
-<h3>8. Add gene annotation information to results table</h3>
+<div id="a.-add-gene-annotation-information-to-results-table" class="section level3">
+<h3>8a. Add gene annotation information to results table</h3>
 <p>Depending upon the data set, you may have to change the database for gene annotation.<br />
 <strong>Human</strong> : <code>hsapiens_gene_ensembl</code><br />
 <strong>Mouse</strong> : <code>mmusculus_gene_ensembl</code><br />
@@ -388,6 +395,37 @@ write.table(as.data.frame(res_out), file = &quot;DESEq2_results_gene_annotated.t
 # Subset for only significant genes
 res_out_sig &lt;- subset(res_out, padj &lt; 0.05)
 </code></pre>
+<hr />
+</div>
+<div id="b.-make-heatmap-of-significant-genes" class="section level3">
+<h3>8b. Make heatmap of significant genes</h3>
+<p>Make a heatmap of the significant genes using the pheatmap package.</p>
+<pre class="r"><code># Load libraries
+library(pheatmap)
+library(RColorBrewer)
+
+# rlog transformation of the raw count data. 
+# Necessary to show data in plots
+rld &lt;- rlog(ddsMat)
+
+# Gather top genes and make matrix
+mat &lt;- assay(rld[row.names(res_out_sig)])
+
+# Make column annotation.
+# Choose which column variables you want to annotate
+# the columns by.
+annotation_col = data.frame(
+  Treatment = factor(colData(rld)$Group),
+  row.names = colData(rld)$SampleID
+)
+
+# Make Heatmap with pheatmap function.
+# See more in documentation for customization
+pheatmap(mat = mat, 
+         color = colorRampPalette(brewer.pal(9, &quot;YlOrBr&quot;))(255), 
+         scale = &quot;row&quot;, 
+         annotation_col = annotation_col,
+         fontsize_row = 8)</code></pre>
 <hr />
 </div>
 <div id="pathway-analysis-on-de-genes." class="section level3">

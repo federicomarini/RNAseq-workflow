@@ -219,12 +219,14 @@ biocLite("pathview")
 biocLite("org.Mm.eg.db")
 biocLite("pheatmap")
 biocLite("genefilter")
+biocLite("fdrtool")
+biocLite("RColorBrewer")
 ```
 
 Be sure to copy the final_counts.txt file generate from featureCounts, to your working directory, or specific it when importing the table.  
 ```R
 # Load required libraries
-library(DESEq2)
+library(DESeq2)
 library(ggplot2)
 
 # Set working directory.
@@ -232,14 +234,17 @@ setwd("~/path/to/working/directory/")
 
 # Import counts table from featureCounts
 # Skip first row (or delete before import)
-counts <- read.delim("~/path/to/working/directory/final_counts.txt", skip = 1)
+counts <- read.delim("~/path/to/working/directory/final_counts.txt", skip = 1, row.names = 1)
+
+# Remove Length column
+counts <- counts[,-1]
 
 # Import metadata (or create a new dataframe)
 # The sample identifers must be the row names for the dataframe and must match the names of the counts table columns.
 metadata <- read.delim("sample_mapping_file.txt", row.names = 1)
 
 # Relevel (if needed) to know which group is the reference (control)
-metadatas$Group <- relevel(metadata$Group, ref = "Control")
+metadata$Group <- relevel(metadata$Group, ref = "Control")
 
 # Make DESeq2 object from featureCounts object 
 # countData : count dataframe
@@ -268,7 +273,7 @@ write.table(as.data.frame(counts(ddsMat), normalized = T), file = 'DESeq2_normal
 
 -----
 
-### 8. Add gene annotation information to results table
+### 8a. Add gene annotation information to results table
 Depending upon the data set, you may have to change the database for gene annotation.  
 **Human** : ```hsapiens_gene_ensembl```   
 **Mouse** : ```mmusculus_gene_ensembl```   
@@ -309,6 +314,39 @@ res_out_sig <- subset(res_out, padj < 0.05)
 
 ```
 
+-----
+
+
+### 8b. Make heatmap of significant genes 
+Make a heatmap of the significant genes using the pheatmap package.
+```R
+# Load libraries
+library(pheatmap)
+library(RColorBrewer)
+
+# rlog transformation of the raw count data. 
+# Necessary to show data in plots
+rld <- rlog(ddsMat)
+
+# Gather top genes and make matrix
+mat <- assay(rld[row.names(res_out_sig)])
+
+# Make column annotation.
+# Choose which column variables you want to annotate
+# the columns by.
+annotation_col = data.frame(
+  Treatment = factor(colData(rld)$Group),
+  row.names = colData(rld)$SampleID
+)
+
+# Make Heatmap with pheatmap function.
+# See more in documentation for customization
+pheatmap(mat = mat, 
+         color = colorRampPalette(brewer.pal(9, "YlOrBr"))(255), 
+         scale = "row", 
+         annotation_col = annotation_col,
+         fontsize_row = 8)
+```
 
 -----
 

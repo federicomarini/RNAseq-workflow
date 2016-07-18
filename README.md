@@ -229,7 +229,7 @@ gunzip genome/*
 gunzip annotation/*
 ```
 
-#### Ensembl
+##### Ensembl
 http://www.ensembl.org/info/data/ftp/index.html
 ```bash
 # Download mouse genome to the 'genome' folder
@@ -243,7 +243,7 @@ gunzip genome/*
 gunzip annotation/*
 ```
 
-#### UNSC
+##### UNSC
 ```bash
 # (TODO)
 ```
@@ -263,7 +263,7 @@ gunzip genome/gencode.v24.transcripts.fa.gz
 gunzip annotation/gencode.v24.annotation.gtf.gz
 ```
 
-##### 3C. Other genome
+#### 3C. Other genome
 If you are not working with a mouse or human genome, see the following websites for a complete listing.
 https://genome.ucsc.edu/cgi-bin/hgGateway  
 http://useast.ensembl.org/info/data/ftp/index.html  

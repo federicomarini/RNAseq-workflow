@@ -16,7 +16,7 @@ Many files are generated during the RNA seq workflow, so it is best to keep them
 **input** : per sample sequencing files (.fastq)  
 **genome** : directory for storing genome of interest (.fasta/.fna)  
 **annotation** : directory for storing the annotation file associated with host genome (.gtf/.gff3)  
-**index** : directory that will store STAR aligner's index  
+**index** : directory that will store STAR aligner's index files   
 **tools** : directory to store dependencies required for analysis (SortMeRNA)  
 
 ```
@@ -34,9 +34,15 @@ mkdir index
 mkdir tools
 ```
 
+#### Note: If you want to use publically available data to test the pipeline, run the command below which will place 1 fastq file from a mouse genome into the ```input``` folder within the project directory. See https://www.encodeproject.org/experiments/ENCSR648YEP/ for more information about the demo data file.
+```
+# Download publically available mouse RNAseq fastq file.
+wget -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
+```
+
 -----
 
-### 2. Installing required dependencies
+### 2. Installing required tools
 This workflow requires many different tools, but many to all of them are available on the phoenix cluster. The tutorial below assumes you are using the NYULMC phoenix cluster. The only package that may not be available directly on the cluster is SortMeRNA. Follow the steps below to install a local copy of SortMeRNA on the cluster environment.
 
 Other tools that are required for processing are:  
@@ -106,12 +112,11 @@ tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF
 ### 3. Download host genome and annotation file
 A host genome and annotation file are required for a complete RNA seq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.
 
-
 #### 3A. Mouse genome
 There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment. ***See this paper for more information:***(TODO)  
-  
 
-##### Gencodes
+
+##### Gencodes (recommended)
 http://www.gencodegenes.org/mouse_releases/current.html
 ```bash
 # Download mouse genome to the 'genome' folder
@@ -141,7 +146,7 @@ gunzip annotation/*
 
 #### UNSC
 ```bash
-
+# (TODO)
 ```
 
 

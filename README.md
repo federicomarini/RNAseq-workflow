@@ -47,6 +47,10 @@ virtualenv venv --python=python2.7
 
 # Start the virtualenv
 source venv/bin/activate
+
+# Create a function to link tools to virtualenv
+# Sourced from http://huttenhower.sph.harvard.edu/docs/anadama_workflows/install.html#id1
+function link() { ln -sv $(readlink -f "$1") $(pwd)/venv/bin/; }
 ```
 
 #### Note:
@@ -83,7 +87,7 @@ F. **Subread**
 http://cutadapt.readthedocs.io/en/stable/guide.html
 "Cutadapt finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from your high-throughput sequencing reads."
 ```bash
-pip install cutadapt
+pip install cutadapt --upgrade
 ```
 
 #### 2B. Install FastQC
@@ -97,11 +101,14 @@ wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v
 unzip tools/fastqc_v0.11.5.zip -d tools/
 rm -rf tools/fastqc_v0.11.5.zip
 
+# Change permissions (only for fastqc tool)
+chmod 777 tools/FastQC/fastqc
+
 # Link package to virtual environment 
-ln -s tools/FastQC/fastqc venv/bin/fastqc
+link tools/FastQC/fastqc
 
 # Check if FastQC was installed properly
-fastqc --version
+fastqc --help
 ```
 
 #### 2C. Install Trim Galore!
@@ -117,7 +124,7 @@ unzip tools/trim_galore_v0.4.1.zip -d tools/
 rm -rf tools/trim_galore_v0.4.1.zip
 
 # Link package to virtual environment 
-ln -s tools/trim_galore_zip/trim_galore venv/bin/trim_galore
+link tools/trim_galore_zip/trim_galore
 
 # Check if Trim galore! was installed properly
 trim_galore --version
@@ -136,8 +143,8 @@ tar -zxvf tools/sortmerna-2.1-linux-64.tar.gz -C tools/
 rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 
 # Link package to virtual environment 
-ln -s tools/sortmerna-2.1-linux-64/indexdb_rna venv/bin/indexdb_rna
-ln -s tools/sortmerna-2.1-linux-64/sortmerna venv/bin/sortmerna
+link tools/sortmerna-2.1-linux-64/indexdb_rna
+link tools/sortmerna-2.1-linux-64/sortmerna
 
 # Check if SortMeRNA was installed properly
 indexdb_rna --help
@@ -174,7 +181,7 @@ unzip tools/2.5.2a.zip -d tools/
 rm -rf tools/2.5.2a.zip
 
 # Link package to virtual environment 
-ln -s tools/STAR-2.5.2a/bin/Linux_x86_64/STAR venv/bin/STAR
+link tools/STAR-2.5.2a/bin/Linux_x86_64/STAR
 
 # Check if STAR was installed properly
 STAR --help
@@ -194,7 +201,7 @@ tar -zxvf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz -C tools/
 rm -rf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz
 
 # Link package to virtual environment 
-ln -s tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts venv/bin/featureCounts
+link tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
 
 # Check if Subread was installed properly
 featureCounts --help
@@ -212,9 +219,8 @@ A host genome and annotation file are required for a complete RNA seq analysis. 
 #### 3A. Mouse genome
 There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment. ***See this paper for more information:***(TODO)  
 
-
 ##### Gencodes (recommended)
-http://www.gencodegenes.org/mouse_releases/current.html
+http://www.gencodegenes.org/mouse_releases/current.html  
 ```bash
 # Download mouse genome to the 'genome' folder
 wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
@@ -325,7 +331,7 @@ biocLite("fdrtool")
 biocLite("RColorBrewer")
 ```
 
-Be sure to copy the final_counts.txt file generate from featureCounts, to your working directory, or specific it when importing the table.  
+Be sure to copy the ```final_counts.txt``` file generate from featureCounts step to your set working directory, or specify the full location when importing the table.  
 ```R
 # Load required libraries
 library(DESeq2)
@@ -338,7 +344,7 @@ setwd("~/path/to/working/directory/")
 # Skip first row (or delete before import)
 counts <- read.delim("~/path/to/working/directory/final_counts.txt", skip = 1, row.names = 1)
 
-# Remove Length column
+# Remove 'Length' column
 counts <- counts[,-1]
 
 # Import metadata (or create a new dataframe)
@@ -378,6 +384,7 @@ Depending upon the data set, you may have to change the database for gene annota
 **Human** : ```hsapiens_gene_ensembl```   
 **Mouse** : ```mmusculus_gene_ensembl```   
 **Squirrel** : ```itridecemlineatus_gene_ensembl```  
+
 ```R
 # Run this command to get a list of available marts
 biomaRt::listDatasets(useEnsembl(biomart="ensembl"))
@@ -408,8 +415,6 @@ res_out$entrez <- geneIDs$entrezgene[idx]
             
 # Subset for only significant genes (q<0.05)
 res_out_sig <- subset(res_out, padj < 0.05)
-
-
 ```
 
 ##### Write all the important results to .txt files
@@ -432,7 +437,8 @@ write.table(x = counts(ddsMat[row.names(res_out_sig)], normalized = T),
 write.table(x = as.data.frame(res_out), 
             file = "DESEq2_results_gene_annotated.txt", 
             sep = '\t', 
-            quote = F)
+            quote = F,
+            col.names = NA)
 
 # Write significant annotated results table to a .txt file
 write.table(x = as.data.frame(res_out_sig), 
@@ -459,9 +465,8 @@ rld <- rlog(ddsMat)
 # Gather top genes and make matrix
 mat <- assay(rld[row.names(res_out_sig)])
 
-# Make column annotation.
-# Choose which column variables you want to annotate
-# the columns by.
+# Make colored column annotations.
+# Choose which column variables you want to annotate the columns by.
 annotation_col = data.frame(
   Treatment = factor(colData(rld)$Group),
   row.names = colData(rld)$SampleID

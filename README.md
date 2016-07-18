@@ -207,10 +207,6 @@ link tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
 featureCounts --help
 ```
 
-# Other tools that can be installed
-(TODO)
-**samstat**  
-
 -----
 
 ### 3. Download host genome and annotation file

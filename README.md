@@ -10,14 +10,15 @@ output: html_document
 ### Introduction  
 RNA seq is an emerging technology for deep RNA sequencing. Not only does RNA seq technology have the ability to analyze differences in gene expression between samples, but can discover new isoforms of genes and analyze SNP variation of particular genes. This tutorial will cover the basic workflow for analyzing RNA seq data on host tissue. It will not cover the workflow for analyzing RNA seq on microbial community samples. For analysis of the meta-transcriptome using RNA seq, see the workflow for Whole Genome Sequencing Metagenomics (WGS Metagenomics) in a different tutorial.
 
-### 1. Setup new directory for analysis
-Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory ```pwd``` is within the new folder created below.
+### 1A. Setup new directory for analysis
+Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory ```pwd``` is within the ```new_analysis``` folder created during the first step.
 
 **input** : per sample sequencing files (.fastq)  
 **genome** : directory for storing genome of interest (.fasta/.fna)  
 **annotation** : directory for storing the annotation file associated with host genome (.gtf/.gff3)  
 **index** : directory that will store STAR aligner's index files   
 **tools** : directory to store dependencies required for analysis (SortMeRNA)  
+**venv** : a virtual environment of python to store all dependencies
 
 ```
 # Make new root directory
@@ -34,33 +35,78 @@ mkdir index
 mkdir tools
 ```
 
-#### Note: If you want to use publically available data to test the pipeline, run the command below which will place 1 fastq file from a mouse genome into the ```input``` folder within the project directory. See https://www.encodeproject.org/experiments/ENCSR648YEP/ for more information about the demo data file.
+### 1B. Setup new virtual environment to store tools
+A new virtual environment will keep all the tools that are required for analysis in its own folder so that there are no errors intorduced into the system python installation and/or break and tools that require a particular version. Most of the tools require python 2.7+. After creating and activating the virtualenv, you should see ```(venv)``` on the command line.
+
+```bash
+# Install the virtualenv package
+pip install virtualenv --user
+
+# Make a new virtual environment folder in the 
+virtualenv venv --python=python2.7
+
+# Start the virtualenv
+source venv/bin/activate
+```
+
+#### Note:
+If there is an error during the virtualenv creation step that states ```The executable python2.7 (from --python=python2.7) does not exist```, then the cluster environment's python version is not set for Python 2.7+, so the command ```module load python/2.7.3``` must be run first before running the ```virtualenv venv --python=python2.7``` command.
+
+
+### 1C. Demo dataset
+If you want to use a demo dataset to practice the RNAseq alignment workflow, run one of the commands below to place a fastq file in the ```input``` folder.
 ```
 # Download publically available mouse RNAseq fastq file.
+# https://www.encodeproject.org/experiments/ENCSR648YEP/
 wget -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
+
+# Download publically available human RNAseq fastq file.
+wget -P input/ (TODO)
 ```
 
 -----
 
 ### 2. Installing required tools
-This workflow requires many different tools, but many to all of them are available on the phoenix cluster. The tutorial below assumes you are using the NYULMC phoenix cluster. The only package that may not be available directly on the cluster is SortMeRNA. Follow the steps below to install a local copy of SortMeRNA on the cluster environment.
+This workflow requires many different tools. Some of these tools maybe available on your cluster environment, but to ensure the correct versioning of the tools, it is suggested to install them again inside a virtual environment. See http://docs.python-guide.org/en/latest/dev/virtualenvs/ for more information about using virtual-environments.
 
 Other tools that are required for processing are:  
-**FASTQC** (link)  
-**Trim Galore!** (link)  
-**STAR-aligner** (link)  
-**samstat** (link)  
-**Subread** (link)  
-**CutAdapt** (link)  
-If the python package Cutadapt is not on your cluster environment, you can install a local copy by running the command below:
-```bash
-pip install cutadapt --user
-```
+A. **cutadapt**  
+B. **FastQC**  
+C. **Trim Galore!**  
+D. **SortMeRNA**  
+D. **STAR-aligner**  
+F. **Subread**  
+
 
 -----
+#### 2A. Install cutadapt
+http://cutadapt.readthedocs.io/en/stable/guide.html
+"Cutadapt finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from your high-throughput sequencing reads."
+```bash
+pip install cutadapt
+```
 
-#### 2A. Install Trim Galore!
-Trim Galore is a tool developed to run FASTQC and Cutadapt in one step. The tool can analyze and trim in the same step, saving time and computation processing performance. It is not normally installed on any cluster environment, so it must be installed separately.
+#### 2B. Install FastQC
+http://www.bioinformatics.babraham.ac.uk/projects/fastqc/  
+"FastQC aims to provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines. It provides a modular set of analyses which you can use to give a quick impression of whether your data has any problems of which you should be aware before doing any further analysis."
+```bash
+# Download FastQC to the 'tools' folder
+wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
+
+# Unzip and remove compressed file
+unzip tools/fastqc_v0.11.5.zip -d tools/
+rm -rf tools/fastqc_v0.11.5.zip
+
+# Link package to virtual environment 
+ln -s tools/FastQC/fastqc venv/bin/fastqc
+
+# Check if FastQC was installed properly
+fastqc --version
+```
+
+#### 2C. Install Trim Galore!
+http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/  
+"Trim Galore! is a wrapper script to automate quality and adapter trimming as well as quality control, with some added functionality to remove biased methylation positions for RRBS sequence files (for directional, non-directional (or paired-end) sequencing)."
 
 ```bash
 # Download Trim Galore! to the 'tools' folder
@@ -70,12 +116,16 @@ wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/tri
 unzip tools/trim_galore_v0.4.1.zip -d tools/
 rm -rf tools/trim_galore_v0.4.1.zip
 
+# Link package to virtual environment 
+ln -s tools/trim_galore_zip/trim_galore venv/bin/trim_galore
+
 # Check if Trim galore! was installed properly
-tools/trim_galore_zip/trim_galore --version
+trim_galore --version
 ```
 
-
-#### 2B. Install SortMeRNA and generate index's
+#### 2D. Install SortMeRNA
+http://bioinfo.lifl.fr/RNA/sortmerna/  
+"SortMeRNA is a biological sequence analysis tool for filtering, mapping and OTU-picking NGS reads. The core algorithm is based on approximate seeds and allows for fast and sensitive analyses of nucleotide sequences. The main application of SortMeRNA is filtering rRNA from metatranscriptomic data."  
 
 ```bash
 # Download SortMeRNA to the 'tools' folder
@@ -85,12 +135,16 @@ wget -P tools/ http://bioinfo.lifl.fr/RNA/sortmerna/code/sortmerna-2.1-linux-64.
 tar -zxvf tools/sortmerna-2.1-linux-64.tar.gz -C tools/
 rm -rf tools/sortmerna-2.1-linux-64.tar.gz
 
+# Link package to virtual environment 
+ln -s tools/sortmerna-2.1-linux-64/indexdb_rna venv/bin/indexdb_rna
+ln -s tools/sortmerna-2.1-linux-64/sortmerna venv/bin/sortmerna
+
 # Check if SortMeRNA was installed properly
-tools/sortmerna-2.1-linux-64/indexdb_rna --help
-tools/sortmerna-2.1-linux-64/sortmerna --help
+indexdb_rna --help
+sortmerna --help
 ```
 
-Next we need to generate an index for the SortMeRNA database. This can be run on the head node as it doesn't require too much computation.
+Next we need to generate an index for the SortMeRNA database.
 ```bash
 # Set variable for location of index files
 sortmernaDB="tools/sortmerna-2.1-linux-64"
@@ -104,8 +158,51 @@ ${sortmernaDB}/rRNA_databases/silva-euk-18s-id95.fasta,${sortmernaDB}/index/silv
 ${sortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${sortmernaDB}/index/silva-euk-28s-id98
 
 # Generate indexs
-tools/sortmerna-2.1-linux-64/indexdb_rna --ref $sortmernaREF 
+indexdb_rna --ref $sortmernaREF 
 ```
+
+#### 2E. Install STAR-aligner
+https://github.com/alexdobin/STAR  
+"Spliced Transcripts Alignment to a Reference"
+
+```bash
+# Download STAR to the 'tools' folder
+wget -P tools/ https://github.com/alexdobin/STAR/archive/2.5.2a.zip
+
+# Unzip and remove compressed file
+unzip tools/2.5.2a.zip -d tools/
+rm -rf tools/2.5.2a.zip
+
+# Link package to virtual environment 
+ln -s tools/STAR-2.5.2a/bin/Linux_x86_64/STAR venv/bin/STAR
+
+# Check if STAR was installed properly
+STAR --help
+```
+
+#### 2F. Install Subread
+http://subread.sourceforge.net/  
+http://bioinf.wehi.edu.au/featureCounts/  
+"Subread package: high-performance read alignment, quantification and mutation discovery"  
+
+```bash
+# Download Subread to the 'tools' folder
+wget -P tools/ https://sourceforge.net/projects/subread/files/subread-1.5.0-p3/subread-1.5.0-p3-Linux-x86_64.tar.gz
+
+# Unzip and remove compressed file
+tar -zxvf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz -C tools/
+rm -rf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz
+
+# Link package to virtual environment 
+ln -s tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts venv/bin/featureCounts
+
+# Check if Subread was installed properly
+featureCounts --help
+```
+
+# Other tools that can be installed
+(TODO)
+**samstat**  
 
 -----
 

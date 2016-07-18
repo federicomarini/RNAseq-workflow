@@ -256,17 +256,17 @@ done
 
 # - - - - - - - - - - - - -
 # Run samtools + move BAM
-# (TODO)
+# (Fix samstat install: TODO)
 # - - - - - - - - - - - - -
 for seq in $alignedSequences/*.bam; do
-    samstat $seq
+    #samstat $seq
     mv $seq $alignedBAM/
 done
 
 # Move Samstat to correct folder
-for html in $alignedSequences/*.html; do
-    mv $html $alignedStat/
-done
+#for html in $alignedSequences/*.html; do
+#    mv $html $alignedStat/
+#done
 
 
 # - - - - - - - - - - - - - -

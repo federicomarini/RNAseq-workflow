@@ -20,9 +20,6 @@
 # enviroment.
 # - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Load STAR
-module load star/2.5.0c
-
 
 # - - - - - - - - - - - -
 # Set variables
@@ -53,8 +50,6 @@ STAR \
 --sjdbGTFfile $annotationFile \
 --sjdbOverhang $readLength \
 --runThreadN 12
-
-# Remove temporary files
 
 
 # Message completed

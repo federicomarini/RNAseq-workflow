@@ -78,24 +78,24 @@ A. **cutadapt**
 B. **FastQC**  
 C. **Trim Galore!**  
 D. **SortMeRNA**  
-D. **STAR-aligner**  
+E. **STAR-aligner**  
 F. **Subread**  
 
 
 -----
 #### 2A. Install cutadapt
-http://cutadapt.readthedocs.io/en/stable/guide.html
-"Cutadapt finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from your high-throughput sequencing reads."
+**Link:** http://cutadapt.readthedocs.io/en/stable/guide.html  
+"Cutadapt finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from your high-throughput sequencing reads."  
 ```bash
 pip install cutadapt --upgrade
 ```
 
 #### 2B. Install FastQC
-http://www.bioinformatics.babraham.ac.uk/projects/fastqc/  
+**Link:** http://www.bioinformatics.babraham.ac.uk/projects/fastqc/  
 "FastQC aims to provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines. It provides a modular set of analyses which you can use to give a quick impression of whether your data has any problems of which you should be aware before doing any further analysis."
 ```bash
-# Download FastQC to the 'tools' folder
-wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
+# Download FastQC to the 'tools' folder  
+wget -P tools/ http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip  
 
 # Unzip and remove compressed file
 unzip tools/fastqc_v0.11.5.zip -d tools/
@@ -112,7 +112,7 @@ fastqc --help
 ```
 
 #### 2C. Install Trim Galore!
-http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/  
+**Link:** http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/  
 "Trim Galore! is a wrapper script to automate quality and adapter trimming as well as quality control, with some added functionality to remove biased methylation positions for RRBS sequence files (for directional, non-directional (or paired-end) sequencing)."
 
 ```bash
@@ -131,7 +131,7 @@ trim_galore --version
 ```
 
 #### 2D. Install SortMeRNA
-http://bioinfo.lifl.fr/RNA/sortmerna/  
+**Link:** http://bioinfo.lifl.fr/RNA/sortmerna/  
 "SortMeRNA is a biological sequence analysis tool for filtering, mapping and OTU-picking NGS reads. The core algorithm is based on approximate seeds and allows for fast and sensitive analyses of nucleotide sequences. The main application of SortMeRNA is filtering rRNA from metatranscriptomic data."  
 
 ```bash
@@ -169,7 +169,7 @@ indexdb_rna --ref $sortmernaREF
 ```
 
 #### 2E. Install STAR-aligner
-https://github.com/alexdobin/STAR  
+**Link:** https://github.com/alexdobin/STAR  
 "Spliced Transcripts Alignment to a Reference"
 
 ```bash
@@ -188,8 +188,8 @@ STAR --help
 ```
 
 #### 2F. Install Subread
-http://subread.sourceforge.net/  
-http://bioinf.wehi.edu.au/featureCounts/  
+**Link:** http://subread.sourceforge.net/  
+**Link:** http://bioinf.wehi.edu.au/featureCounts/  
 "Subread package: high-performance read alignment, quantification and mutation discovery"  
 
 ```bash

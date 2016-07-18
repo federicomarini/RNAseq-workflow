@@ -18,21 +18,14 @@
 # aligner as well as the SortMeRNA removal tool
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Source virtual environment that contains all the required tools
+source venv/bin/activate
 
 # - - - - - - - - - - -
 # Variables to set
 # - - - - - - - - - - - 
 qualityCutoff=20
 trimLength=50
-
-
-# - - - - - - - - - - -
-# Load required modules
-# - - - - - - - - - - - 
-module load samstat/1.09
-module load star/2.5.0c
-module load subread/1.4.6-p3
-module load fastqc/0.11.4
 
 
 # - - - - - - - - - - - - - - - - -
@@ -48,6 +41,7 @@ echo "Run parameters:"
 hostname -f
 date
 pwd
+python --version
 echo "- - - - - - - - - - - - - - -"
 
 
@@ -60,9 +54,19 @@ if [[ -z $(STAR --version) ]]; then
     echo "No STAR installation found! Exiting now."
     exit 1
 
+# No Trim Galore! in PATH
+elif [[ -z $(trim_galore --version) ]]; then
+    echo "No TrimeGaore! installation found! Exiting now."
+    exit 1
+    
+# No sortmerna in PATH
+elif [[ -z $(sortmerna --version) ]]; then
+    echo "No SortMeRNA installation found! Exiting now."
+    exit 1
+    
 # No Cutadapt in PATH
-elif [[ -z $(cutadapt --version) ]]; then
-    echo "No CutAdapt installation found! Exiting now."
+elif [[ -z $(featureCounts --version) ]]; then
+    echo "No featureCounts installation found! Exiting now."
     exit 1
 
 # No FASTQ in PATH
@@ -252,6 +256,7 @@ done
 
 # - - - - - - - - - - - - -
 # Run samtools + move BAM
+# (TODO)
 # - - - - - - - - - - - - -
 for seq in $alignedSequences/*.bam; do
     samstat $seq
@@ -283,3 +288,4 @@ $dirlist
 
 # End of script
 echo "RNAseq completed!"
+deactivate

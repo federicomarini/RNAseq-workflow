@@ -271,14 +271,14 @@ http://useast.ensembl.org/info/data/ftp/index.html
 -----
 
 ### 4. Generate STAR aligner index
-The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job.
+The STAR aligner requires an index to be created before aligning any ```fastq``` sequences. The index command requires the host genome of interest and associated annotation file as inputs. The command is best run on the cluster, but should be submitted as a job. Download the shell file and submit it as a job. Additionally you must specific the length of the sequences in the RNAseq run in the command. This is typically 50 or 101, but will depend on what was requested.
 
 ```bash
 # Download index job file
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
-# Submit the make_index.sh as a job 
-qsub make_index.sh
+# Submit the make_index.sh as a job. Set the read length to 50bp.
+qsub make_index.sh 50
 ```
 
 -----
@@ -297,7 +297,7 @@ Before submitting the command, make sure you change the variables within the fil
 -----
 
 ### 6. Run the workflow 
-The job can be submitted to the cluster once you have changed the parameters to reflect your data and you have placed the ```fastq``` files into the folder, 'input'.
+The job can be submitted to the cluster once you have changed the parameters to reflect your data and you have placed the ```fastq``` files into the folder, ```input```.
 ```bash
 qsub run_workflow.sh
 ```

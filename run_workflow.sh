@@ -51,27 +51,32 @@ echo "- - - - - - - - - - - - - - -"
 # - - - - - - - - - - - -
 
 # No Trim Galore! in PATH
-if [[ -z $(STAR --version) ]]; then
+if [[ -z $(type STAR) ]]; then
     echo "No STAR installation found! Exiting now."
     exit 1
 
 # No Trim Galore! in PATH
-elif [[ -z $(trim_galore --version) ]]; then
+elif [[ -z $(type trim_galore) ]]; then
     echo "No TrimeGaore! installation found! Exiting now."
     exit 1
     
+# No cutadapt in PATH
+elif [[ -z $(type cutadapt) ]]; then
+    echo "No cutadapt installation found! Exiting now."
+    exit 1
+    
 # No sortmerna in PATH
-elif [[ -z $(sortmerna) ]]; then
+elif [[ -z $(type sortmerna) ]]; then
     echo "No SortMeRNA installation found! Exiting now."
     exit 1
     
-# No Cutadapt in PATH
-elif [[ -z $(featureCounts) ]]; then
+# No featureCounts in PATH
+elif [[ -z $(type featureCounts) ]]; then
     echo "No featureCounts installation found! Exiting now."
     exit 1
 
 # No FASTQ in PATH
-elif [[ -z $(fastqc) ]]; then
+elif [[ -z $(type fastqc) ]]; then
     echo "No FASTQC installation found! Exiting now."
     exit 1
 fi

@@ -15,10 +15,11 @@
 # This is the workflow script for processing and
 # analyzing RNAseq data from raw FASTQ sequences.
 # There must be an index made for both the STAR
-# aligner as well as the SortMeRNA removal tool
+# aligner as well as the SortMeRNA removal tool.
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Source virtual environment that contains all the required tools
+# Source virtual environment that contains all 
+# the required tools.
 source venv/bin/activate
 
 # - - - - - - - - - - -
@@ -60,17 +61,17 @@ elif [[ -z $(trim_galore --version) ]]; then
     exit 1
     
 # No sortmerna in PATH
-elif [[ -z $(sortmerna --version) ]]; then
+elif [[ -z $(sortmerna) ]]; then
     echo "No SortMeRNA installation found! Exiting now."
     exit 1
     
 # No Cutadapt in PATH
-elif [[ -z $(featureCounts --version) ]]; then
+elif [[ -z $(featureCounts) ]]; then
     echo "No featureCounts installation found! Exiting now."
     exit 1
 
 # No FASTQ in PATH
-elif [[ -z $(fastqc --version) ]]; then
+elif [[ -z $(fastqc) ]]; then
     echo "No FASTQC installation found! Exiting now."
     exit 1
 fi
@@ -139,7 +140,7 @@ mkdir -p $outputTrimFolder
 
 # Run Trim Galore to remove adapters and low base quality scores
 for trim in $inputFiles*; do
-  tools/trim_galore_zip/trim_galore \
+  trim_galore \
   --quality $qualityCutoff \
   --fastqc \
   --length $trimLength \
@@ -175,7 +176,7 @@ for trim in $outputTrimFolder/*.fq; do
     FQ=`basename $trim .fq`
 
     # run sortmerna
-    tools/sortmerna-2.1-linux-64/sortmerna \
+    sortmerna \
     --ref $sortmernaREF \
     --reads $trim \
     --aligned ${sortMeRnaAligned}/${FQ}_aligned \
@@ -226,7 +227,6 @@ for seq in $sortMeRnaFiltered*; do
     --readFilesCommand zcat
 
 done
-
 
 # Move Log Files into correct folder
 for log in $alignedSequences/*Log.final.out; do

@@ -20,6 +20,9 @@
 # enviroment.
 # - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# Source virtualevn
+source venv/bin/activate
+
 
 # - - - - - - - - - - - -
 # Set variables
@@ -39,8 +42,10 @@ if [[ -z $(STAR --version) ]]; then
     exit 1
 fi
 
-# unzip if compressed
-gunzip $genomeFile
+# Unzip genome (if compressed)
+if [ ${$genomeFile: -3} == ".gz" ]; then
+    gunzip $genomeFile
+fi
 
 # Build an index for alignment. Only needs to be run once.
 STAR \
@@ -49,9 +54,9 @@ STAR \
 --genomeFastaFiles $genomeFile \
 --sjdbGTFfile $annotationFile \
 --sjdbOverhang $readLength \
+--limitGenomeGenerateRAM 80478234666 \
 --runThreadN 12
-
 
 # Message completed
 echo 'STAR Index generated!'
-
+deactivate

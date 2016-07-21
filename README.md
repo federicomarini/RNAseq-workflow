@@ -219,7 +219,7 @@ There are different releases of the full mouse genome, so be aware which genome 
 http://www.gencodegenes.org/mouse_releases/current.html  
 ```bash
 # Download mouse genome to the 'genome' folder
-wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.transcripts.fa.gz
+wget -P genome/ fftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRCm38.p4.genome.fa.gz
 
 # Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
@@ -239,8 +239,8 @@ wget -P genome/ ftp://ftp.ensembl.org/pub/release-84/fasta/mus_musculus/dna/Mus_
 wget -P annotation/ ftp://ftp.ensembl.org/pub/release-84/gtf/mus_musculus/Mus_musculus.GRCm38.84.gtf.gz
 
 # Decompress
-gunzip genome/*
-gunzip annotation/*
+gunzip genome/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
+gunzip annotation/Mus_musculus.GRCm38.84.gtf.gz
 ```
 
 ##### UNSC
@@ -278,7 +278,7 @@ The STAR aligner requires an index to be created before aligning any ```fastq```
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
 # Submit the make_index.sh as a job. Set the read length to 50bp.
-qsub make_index.sh 50
+qsub make_index.sh 100
 ```
 
 -----

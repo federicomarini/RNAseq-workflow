@@ -129,13 +129,11 @@ echo "Quality analysis of raw reads..."
 mkdir -p $outputQcFolder
 
 # Run Quality Analysis on Raw Reads
-for seq in $inputFiles; do
-  fastqc \
-    -o $outputQcFolder \
-    --noextract \
-    -t $NSLOTS \
-    $seq
-done
+fastqc \
+-o $outputQcFolder \
+--noextract \
+-t $NSLOTS \
+$seq
 
 
 # - - - - - - - - - - -
@@ -145,14 +143,12 @@ echo "Trimming raw reads..."
 mkdir -p $outputTrimFolder
 
 # Run Trim Galore to remove adapters and low base quality scores
-for trim in $inputFiles*; do
-  trim_galore \
-  --quality $qualityCutoff \
-  --fastqc \
-  --length $trimLength \
-  --output_dir $outputTrimFolder \
-  $trim
-done
+trim_galore \
+--quality $qualityCutoff \
+--fastqc \
+--length $trimLength \
+--output_dir $outputTrimFolder \
+$trim
 
 # unzip all sequences (if needed)
 gunzip $outputTrimFolder/*.fq.gz
@@ -176,31 +172,29 @@ ${sortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${sortmernaDB}/index/silv
 
 
 # Align to rRNA databases
-for trim in $outputTrimFolder/*.fq; do
 
-    # Get basename
-    FQ=`basename $trim .fq`
+# Get basename
+FQ=`basename $trim .fq`
 
-    # run sortmerna
-    sortmerna \
-    --ref $sortmernaREF \
-    --reads $trim \
-    --aligned ${sortMeRnaAligned}/${FQ}_aligned \
-    --other ${sortMeRnaFiltered}/${FQ}_filtered \
-    --fastx \
-    --log \
-    -a $NSLOTS \
-    -v
+# run sortmerna
+sortmerna \
+--ref $sortmernaREF \
+--reads $trim \
+--aligned ${sortMeRnaAligned}/${FQ}_aligned \
+--other ${sortMeRnaFiltered}/${FQ}_filtered \
+--fastx \
+--log \
+-a $NSLOTS \
+-v
 
-    # Move Log Files into correct order
-    mv ${sortMeRnaAligned}/${FQ}_aligned.log $sortMeRnaLogs
+# Move Log Files into correct order
+mv ${sortMeRnaAligned}/${FQ}_aligned.log $sortMeRnaLogs
 
-    # Removed Cutadapt Trimmed Files to save space
-    rm -rf $trim
+# Removed Cutadapt Trimmed Files to save space
+rm -rf $trim
 
-    # Gzip the sequences that aligned to rRNA databases to save space
-    gzip ${sortMeRnaAligned}${FQ}_aligned.fq
-done
+# Gzip the sequences that aligned to rRNA databases to save space
+gzip ${sortMeRnaAligned}${FQ}_aligned.fq
 
 
 # - - - - - - - - - - -
@@ -213,25 +207,24 @@ mkdir -p $alignedLog
 mkdir -p $alignedStat
 
 # Run STAR-aligner
-for seq in $sortMeRnaFiltered*; do
 
-    # Get basename and directory
-    seq_dir=$(dirname ${seq})/
-    baseName=`basename $seq .fq.gz`
+# Get basename and directory
+seq_dir=$(dirname ${seq})/
+baseName=`basename $seq .fq.gz`
 
-    # Remove the last '_trimmed_filtered' to make the naming cleaner
-    baseNameClean=${baseName%?????????????????}
+# Remove the last '_trimmed_filtered' to make the naming cleaner
+baseNameClean=${baseName%?????????????????}
 
-    # STAR
-    STAR \
-    --genomeDir $genomeIndexDir \
-    --readFilesIn $seq \
-    --runThreadN $NSLOTS \
-    --outFileNamePrefix $alignedSequences/$baseNameClean \
-    --outSAMtype BAM SortedByCoordinate \
-    --quantMode GeneCounts \
-    --readFilesCommand zcat
-done
+# STAR
+STAR \
+--genomeDir $genomeIndexDir \
+--readFilesIn $seq \
+--runThreadN $NSLOTS \
+--outFileNamePrefix $alignedSequences/$baseNameClean \
+--outSAMtype BAM SortedByCoordinate \
+--quantMode GeneCounts \
+--readFilesCommand zcat
+
 
 # Move Log Files into correct folder
 for log in $alignedSequences/*Log.final.out; do

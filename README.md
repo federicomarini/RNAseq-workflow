@@ -65,7 +65,8 @@ If you want to use a demo dataset to practice the RNAseq alignment workflow, run
 wget -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
 
 # Download publically available human RNAseq fastq file.
-wget -P input/ (TODO)
+# https://www.encodeproject.org/experiments/ENCFF001RNK/
+wget -P input/ https://www.encodeproject.org/files/ENCFF001RNK/@@download/ENCFF001RNK.fastq.gz
 ```
 
 -----
@@ -219,14 +220,14 @@ There are different releases of the full mouse genome, so be aware which genome 
 http://www.gencodegenes.org/mouse_releases/current.html  
 ```bash
 # Download mouse genome to the 'genome' folder
-wget -P genome/ fftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRCm38.p4.genome.fa.gz
+wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRCm38.p4.genome.fa.gz
 
 # Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
 
 # Decompress
-gunzip genome/*
-gunzip annotation/*
+gunzip genome/GRCm38.p4.genome.fa.gz
+gunzip annotation/gencode.vM9.annotation.gtf.gz
 ```
 
 ##### Ensembl

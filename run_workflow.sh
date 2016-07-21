@@ -39,10 +39,10 @@ echo "Number in Queue: $QUEUE"
 echo "OS type: $SGE_ARCH"
 echo ""
 echo "Run parameters:"
-hostname -f
-date
-pwd
-python --version
+echo "Host name: "$(hostname -f)" "
+echo "Date started: $(date)"
+echo "Currently in" $(pwd)
+echo "Python version: "$(python -V 2>&1)" "
 echo "- - - - - - - - - - - - - - -"
 
 
@@ -79,6 +79,10 @@ elif [[ -z $(type featureCounts) ]]; then
 elif [[ -z $(type fastqc) ]]; then
     echo "No FASTQC installation found! Exiting now."
     exit 1
+    
+elif [[ -z "$(ls -A index/)" ]]; then
+     echo "Error genome index is empty. You must first generate an index before alignment."
+     exit 1
 fi
 
 
@@ -94,30 +98,25 @@ mkdir -p $outputFolder
 
 # Genome/Annotation
 genomeFile=genome/*
-indexFolder=index/
 annotationFile=annotation/*
 
-# SortMeRNA Location
-sortMeRNALoc="tools/sortmerna/sortmerna"
-sortMeRNADB="tools/sortmerna"
-
-
-# - - - - - - - - - - -
-# Variables to set
-# - - - - - - - - - - - 
+# QC data
 outputQcFolder="${outputFolder}/initial_qc"
 outputTrimFolder="${outputFolder}/trimmed_output"
 
+# SortMeRNA
 sortMeRnaAligned="${outputFolder}/rRNA/aligned/"
 sortMeRnaFiltered="${outputFolder}/rRNA/filtered/"
 sortMeRnaLogs="${outputFolder}/rRNA/logs/"
 sortmernaDB="tools/sortmerna-2.1-linux-64"
 
+# Alignment
 alignedSequences="${outputFolder}/aligned_sequences"
 alignedBAM="${outputFolder}/aligned_sequences/aligned_bam/"
 alignedLog="${outputFolder}/aligned_sequences/aligned_logs/"
 alignedStat="${outputFolder}/aligned_sequences/aligned_stats/"
 
+# featureCounts
 finalCounts="${outputFolder}/final_counts"
 
 
@@ -223,14 +222,13 @@ for seq in $sortMeRnaFiltered*; do
 
     # STAR
     STAR \
-    --genomeDir $indexFolder \
+    --genomeDir index/ \
     --readFilesIn $seq \
     --runThreadN $NSLOTS \
     --outFileNamePrefix $alignedSequences/$baseNameClean \
     --outSAMtype BAM SortedByCoordinate \
     --quantMode GeneCounts \
     --readFilesCommand zcat
-
 done
 
 # Move Log Files into correct folder

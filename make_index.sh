@@ -5,7 +5,7 @@
 #$ -e star_index_error.txt
 #$ -o star_index_stdout.txt
 #$ -pe threaded 12
-#$ -l mem_free=8G
+#$ -l mem_free=16G
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -28,9 +28,10 @@ source venv/bin/activate
 # Set variables
 # - - - - - - - - - - - -
 export readLength=`expr $1 - 1`
-export genomeFile=genome/*
+export genomeFile=$(ls genome/)
 export indexFolder="index/"
-export annotationFile=annotation/*
+export annotationFile=$(ls annotation/)
+
 
 # - - - - - - - - - - - -
 # Verify script can run
@@ -54,7 +55,7 @@ STAR \
 --genomeFastaFiles $genomeFile \
 --sjdbGTFfile $annotationFile \
 --sjdbOverhang $readLength \
---limitGenomeGenerateRAM 80478234666 \
+--limitGenomeGenerateRAM 17179869184 \
 --runThreadN 12
 
 # Message completed

@@ -5,7 +5,7 @@
 #$ -e workflow_error.txt
 #$ -o workflow_stdout.txt
 #$ -pe threaded 16
-#$ -l mem_free=8G
+#$ -l mem_free=16G
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -97,8 +97,8 @@ outputFolder="outputFolder"
 mkdir -p $outputFolder
 
 # Genome/Annotation
-genomeFile=genome/*
-annotationFile=annotation/*
+genomeIndexDir="genome/"
+annotationFile=$(ls -d -1 annotation/*)
 
 # QC data
 outputQcFolder="${outputFolder}/initial_qc"
@@ -222,7 +222,7 @@ for seq in $sortMeRnaFiltered*; do
 
     # STAR
     STAR \
-    --genomeDir index/ \
+    --genomeDir $genomeIndexDir \
     --readFilesIn $seq \
     --runThreadN $NSLOTS \
     --outFileNamePrefix $alignedSequences/$baseNameClean \

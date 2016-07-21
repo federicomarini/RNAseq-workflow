@@ -28,9 +28,9 @@ source venv/bin/activate
 # Set variables
 # - - - - - - - - - - - -
 export readLength=`expr $1 - 1`
-export genomeFile=$(ls genome/)
+export genomeFile=$(ls -d -1 genome/*)
 export indexFolder="index/"
-export annotationFile=$(ls annotation/)
+export annotationFile=$(ls -d -1 annotation/*)
 
 
 # - - - - - - - - - - - -

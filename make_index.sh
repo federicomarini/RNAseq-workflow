@@ -58,6 +58,9 @@ STAR \
 --limitGenomeGenerateRAM 17179869184 \
 --runThreadN 12
 
+# Clean up temporary folder
+rm -rf _STARtmp/
+
 # Message completed
 echo 'STAR Index generated!'
 deactivate

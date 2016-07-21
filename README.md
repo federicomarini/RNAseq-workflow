@@ -22,10 +22,10 @@ Many files are generated during the RNA seq workflow, so it is best to keep them
 
 ```
 # Make new root directory
-mkdir new_analysis
+mkdir rnaseq_analysis
 
 # Change directory into new folder
-cd new_analysis
+cd rnaseq_analysis
 
 # Make sub-directories to store:
 mkdir input
@@ -87,7 +87,7 @@ F. **Subread**
 **Link:** http://cutadapt.readthedocs.io/en/stable/guide.html  
 "Cutadapt finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from your high-throughput sequencing reads."  
 ```bash
-pip install cutadapt --upgrade
+pip install cutadapt
 ```
 
 #### 2B. Install FastQC
@@ -108,7 +108,7 @@ chmod 777 tools/FastQC/fastqc
 link tools/FastQC/fastqc
 
 # Check if FastQC was installed properly
-fastqc --help
+fastqc --version
 ```
 
 #### 2C. Install Trim Galore!
@@ -147,8 +147,8 @@ link tools/sortmerna-2.1-linux-64/indexdb_rna
 link tools/sortmerna-2.1-linux-64/sortmerna
 
 # Check if SortMeRNA was installed properly
-indexdb_rna --help
-sortmerna --help
+indexdb_rna -h
+sortmerna --version
 ```
 
 Next we need to generate an index for the SortMeRNA database.
@@ -184,7 +184,7 @@ rm -rf tools/2.5.2a.zip
 link tools/STAR-2.5.2a/bin/Linux_x86_64/STAR
 
 # Check if STAR was installed properly
-STAR --help
+STAR --version
 ```
 
 #### 2F. Install Subread
@@ -203,8 +203,8 @@ rm -rf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz
 # Link package to virtual environment 
 link tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
 
-# Check if Subread was installed properly
-featureCounts --help
+# Check if Subread (featureCounts) was installed properly
+featureCounts -v
 ```
 
 -----
@@ -277,8 +277,8 @@ The STAR aligner requires an index to be created before aligning any ```fastq```
 # Download index job file
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
-# Submit the make_index.sh as a job. Set the read length to 50bp.
-qsub make_index.sh 100
+# Submit the make_index.sh as a job. Set the read length to 101bp.
+qsub make_index.sh 101
 ```
 
 -----
@@ -286,13 +286,13 @@ qsub make_index.sh 100
 ### 5. Download workflow and change parameters
 Once the index has been generated and all of the tools are installed, it is time to start the alignment workflow. The workflow is stored as a shell file which has ```for``` loops to iterate over each input ```fastq``` file. This setup allows the shell file to be submitted to the cluster as a job. The workflow will place files generated during processing into the correct folders.
 
+Before submitting the command, make sure you change the variables within the file to reflect your data set.  
+- [ ] **qualityCutoff** : The minimum Phred score to retain nucleotides  
+- [ ] **trimLength** :  The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)  
+
 ```bash
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow.sh
 ```
-
-Before submitting the command, make sure you change the variables within the file to reflect your data set.  
-**qualityCutoff** : The minimum Phred score to retain nucleotides  
-**trimLength** :  The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)  
 
 -----
 

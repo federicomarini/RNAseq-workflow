@@ -4,8 +4,8 @@
 #$ -N RNAseq_Workflow
 #$ -e workflow_error.txt
 #$ -o workflow_stdout.txt
-#$ -pe threaded 16
-#$ -l mem_free=16G
+#$ -pe threaded 24
+#$ -l mem_free=32G
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -18,13 +18,13 @@
 # aligner as well as the SortMeRNA removal tool.
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Source virtual environment that contains all 
+# Source virtual environment that contains all
 # the required tools.
 source venv/bin/activate
 
 # - - - - - - - - - - -
 # Variables to set
-# - - - - - - - - - - - 
+# - - - - - - - - - - -
 qualityCutoff=20
 trimLength=50
 
@@ -59,17 +59,17 @@ if [[ -z $(type STAR) ]]; then
 elif [[ -z $(type trim_galore) ]]; then
     echo "No TrimeGaore! installation found! Exiting now."
     exit 1
-    
+
 # No cutadapt in PATH
 elif [[ -z $(type cutadapt) ]]; then
     echo "No cutadapt installation found! Exiting now."
     exit 1
-    
+
 # No sortmerna in PATH
 elif [[ -z $(type sortmerna) ]]; then
     echo "No SortMeRNA installation found! Exiting now."
     exit 1
-    
+
 # No featureCounts in PATH
 elif [[ -z $(type featureCounts) ]]; then
     echo "No featureCounts installation found! Exiting now."
@@ -79,10 +79,10 @@ elif [[ -z $(type featureCounts) ]]; then
 elif [[ -z $(type fastqc) ]]; then
     echo "No FASTQC installation found! Exiting now."
     exit 1
-    
+
 elif [[ -z "$(ls -A index/)" ]]; then
-     echo "Error genome index is empty. You must first generate an index before alignment."
-     exit 1
+    echo "Error genome index is empty. You must first generate an index before alignment."
+    exit 1
 fi
 
 
@@ -93,42 +93,42 @@ fi
 # Input/Output
 inputFiles=input/*
 #outputFolder="output.$(date +%F_%R)"
-outputFolder="outputFolder"
+outputFolder="output"
 mkdir -p $outputFolder
 
 # Genome/Annotation
-genomeIndexDir="genome/"
+genomeIndexDir="index/"
 annotationFile=$(ls -d -1 annotation/*)
 
 # QC data
-outputQcFolder="${outputFolder}/initial_qc"
-outputTrimFolder="${outputFolder}/trimmed_output"
+outputQcFolder="${outputFolder}/1_initial_qc"
+outputTrimFolder="${outputFolder}/2_trimmed_output"
 
 # SortMeRNA
-sortMeRnaAligned="${outputFolder}/rRNA/aligned/"
-sortMeRnaFiltered="${outputFolder}/rRNA/filtered/"
-sortMeRnaLogs="${outputFolder}/rRNA/logs/"
+sortMeRnaAligned="${outputFolder}/3_rRNA/aligned/"
+sortMeRnaFiltered="${outputFolder}/3_rRNA/filtered/"
+sortMeRnaLogs="${outputFolder}/3_rRNA/logs/"
 sortmernaDB="tools/sortmerna-2.1-linux-64"
 
 # Alignment
-alignedSequences="${outputFolder}/aligned_sequences"
-alignedBAM="${outputFolder}/aligned_sequences/aligned_bam/"
-alignedLog="${outputFolder}/aligned_sequences/aligned_logs/"
-alignedStat="${outputFolder}/aligned_sequences/aligned_stats/"
+alignedSequences="${outputFolder}/4_aligned_sequences"
+alignedBAM="${outputFolder}/4_aligned_sequences/aligned_bam/"
+alignedLog="${outputFolder}/4_aligned_sequences/aligned_logs/"
+alignedStat="${outputFolder}/4_aligned_sequences/aligned_stats/"
 
 # featureCounts
-finalCounts="${outputFolder}/final_counts"
+finalCounts="${outputFolder}/5_inal_counts"
 
 
 # - - - - - - - - - - -
 # Run FASTQC
-# - - - - - - - - - - - 
+# - - - - - - - - - - -
 echo "Quality analysis of raw reads..."
 mkdir -p $outputQcFolder
 
 # Run Quality Analysis on Raw Reads
 for seq in $inputFiles; do
-  fastqc \
+    fastqc \
     -o $outputQcFolder \
     --noextract \
     -t $NSLOTS \
@@ -138,18 +138,18 @@ done
 
 # - - - - - - - - - - -
 # Run Trim Galore!
-# - - - - - - - - - - - 
+# - - - - - - - - - - -
 echo "Trimming raw reads..."
 mkdir -p $outputTrimFolder
 
 # Run Trim Galore to remove adapters and low base quality scores
 for trim in $inputFiles*; do
-  trim_galore \
-  --quality $qualityCutoff \
-  --fastqc \
-  --length $trimLength \
-  --output_dir $outputTrimFolder \
-  $trim
+    trim_galore \
+    --quality $qualityCutoff \
+    --fastqc \
+    --length $trimLength \
+    --output_dir $outputTrimFolder \
+    $trim
 done
 
 # unzip all sequences (if needed)
@@ -172,7 +172,6 @@ ${sortmernaDB}/rRNA_databases/silva-bac-23s-id98.fasta,${sortmernaDB}/index/silv
 ${sortmernaDB}/rRNA_databases/silva-euk-18s-id95.fasta,${sortmernaDB}/index/silva-euk-18s-id95:\
 ${sortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${sortmernaDB}/index/silva-euk-28s-id98
 
-
 # Align to rRNA databases
 for trim in $outputTrimFolder/*.fq; do
 
@@ -193,11 +192,14 @@ for trim in $outputTrimFolder/*.fq; do
     # Move Log Files into correct order
     mv ${sortMeRnaAligned}/${FQ}_aligned.log $sortMeRnaLogs
 
-    # Removed Cutadapt Trimmed Files to save space
+    # Removed Cutadapt trimmed files to save space
     rm -rf $trim
 
-    # Gzip the sequences that aligned to rRNA databases to save space
+    # Gzip the aligned rRNA sequences to save space
     gzip ${sortMeRnaAligned}${FQ}_aligned.fq
+
+    # Gzip the sequences that aligned to rRNA databases to save space
+    gzip ${sortMeRnaAligned}${FQ}_filtered.fq
 done
 
 
@@ -218,7 +220,7 @@ for seq in $sortMeRnaFiltered*; do
     baseName=`basename $seq .fq.gz`
 
     # Remove the last '_trimmed_filtered' to make the naming cleaner
-    baseNameClean=${baseName%?????????????????}
+    baseNameClean=${baseName%???????????????????}
 
     # STAR
     STAR \
@@ -227,8 +229,7 @@ for seq in $sortMeRnaFiltered*; do
     --runThreadN $NSLOTS \
     --outFileNamePrefix $alignedSequences/$baseNameClean \
     --outSAMtype BAM SortedByCoordinate \
-    --quantMode GeneCounts \
-    --readFilesCommand zcat
+    --quantMode GeneCounts
 done
 
 # Move Log Files into correct folder
@@ -262,7 +263,7 @@ done
 # (Fix samstat install: TODO)
 # - - - - - - - - - - - - -
 for seq in $alignedSequences/*.bam; do
-    #samstat $seq
+#samstat $seq
     mv $seq $alignedBAM/
 done
 
@@ -289,6 +290,8 @@ featureCounts \
 $dirlist
 
 
+
 # End of script
 echo "RNAseq completed!"
+echo "Date finished: $(date)"
 deactivate

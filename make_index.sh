@@ -4,8 +4,8 @@
 #$ -N STAR_Index
 #$ -e star_index_error.txt
 #$ -o star_index_stdout.txt
-#$ -pe threaded 12
-#$ -l mem_free=16G
+#$ -pe threaded 24
+#$ -l mem_free=64G
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -44,19 +44,17 @@ if [[ -z $(STAR --version) ]]; then
 fi
 
 # Unzip genome (if compressed)
-if [ ${$genomeFile: -3} == ".gz" ]; then
-    gunzip $genomeFile
-fi
+gunzip $genomeFile
+
 
 # Build an index for alignment. Only needs to be run once.
 STAR \
 --runMode genomeGenerate \
 --genomeDir $indexFolder \
---genomeFastaFiles $genomeFile \
---sjdbGTFfile $annotationFile \
+--genomeFastaFiles $(pwd)/$genomeFile \
+--sjdbGTFfile $(pwd)/$annotationFile \
 --sjdbOverhang $readLength \
---limitGenomeGenerateRAM 17179869184 \
---runThreadN 12
+--runThreadN $NSLOTS
 
 # Clean up temporary folder
 rm -rf _STARtmp/

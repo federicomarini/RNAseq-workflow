@@ -60,13 +60,14 @@ If there is an error during the virtualenv creation step that states ```The exec
 ### 1C. Demo dataset
 If you want to use a demo dataset to practice the RNAseq alignment workflow, run one of the commands below to place a fastq file in the ```input``` folder.
 ```
-# Download publically available mouse RNAseq fastq file.
+# Download publically available mouse RNAseq fastq file. (2 biological replicates)
 # https://www.encodeproject.org/experiments/ENCSR648YEP/
 wget -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
+wget -P input/ https://www.encodeproject.org/files/ENCFF473WMT/@@download/ENCFF473WMT.fastq.gz
 
 # Download publically available human RNAseq fastq file.
 # https://www.encodeproject.org/experiments/ENCFF001RNK/
-wget -P input/ https://www.encodeproject.org/files/ENCFF001RNK/@@download/ENCFF001RNK.fastq.gz
+wget -P input/ (TODO)
 ```
 
 -----
@@ -216,6 +217,7 @@ A host genome and annotation file are required for a complete RNA seq analysis. 
 #### 3A. Mouse genome
 There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment. ***See this paper for more information:***(TODO)  
 
+
 ##### Gencodes (recommended)
 http://www.gencodegenes.org/mouse_releases/current.html  
 ```bash
@@ -225,30 +227,18 @@ wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRC
 # Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
 
+# Download genome annotation file to the 'annotation' folder
+wget -P annotation/ http://ftp.ensembl.org/pub/current_gtf/mus_musculus/Mus_musculus.GRCm38.85.gtf.gz
+
 # Decompress
 gunzip genome/GRCm38.p4.genome.fa.gz
 gunzip annotation/gencode.vM9.annotation.gtf.gz
-```
-
-##### Ensembl
-http://www.ensembl.org/info/data/ftp/index.html
-```bash
-# Download mouse genome to the 'genome' folder
-wget -P genome/ ftp://ftp.ensembl.org/pub/release-84/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
-
-# Download genome annotation file to the 'annotation' folder
-wget -P annotation/ ftp://ftp.ensembl.org/pub/release-84/gtf/mus_musculus/Mus_musculus.GRCm38.84.gtf.gz
-
-# Decompress
-gunzip genome/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
-gunzip annotation/Mus_musculus.GRCm38.84.gtf.gz
 ```
 
 ##### UNSC
 ```bash
 # (TODO)
 ```
-
 
 #### 3B. Human genome
 

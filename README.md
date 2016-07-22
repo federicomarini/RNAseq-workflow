@@ -64,10 +64,6 @@ If you want to use a demo dataset to practice the RNAseq alignment workflow, run
 # https://www.encodeproject.org/experiments/ENCSR648YEP/
 wget -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
 wget -P input/ https://www.encodeproject.org/files/ENCFF473WMT/@@download/ENCFF473WMT.fastq.gz
-
-# Download publically available human RNAseq fastq file.
-# https://www.encodeproject.org/experiments/ENCFF001RNK/
-wget -P input/ (TODO)
 ```
 
 -----
@@ -138,15 +134,18 @@ trim_galore --version
 
 ```bash
 # Download SortMeRNA to the 'tools' folder
-wget -P tools/ http://bioinfo.lifl.fr/RNA/sortmerna/code/sortmerna-2.1-linux-64.tar.gz 
+wget -P tools/ https://github.com/biocore/sortmerna/archive/2.1.tar.gz 
 
 # Unzip and remove compressed file
-tar -zxvf tools/sortmerna-2.1-linux-64.tar.gz -C tools/
-rm -rf tools/sortmerna-2.1-linux-64.tar.gz
+tar -zxvf tools/2.1.tar.gz -C tools/
+rm -rf tools/2.1.tar.gz
+
+# Compile scripts
+bash tools/sortmerna-2.1/build.sh
 
 # Link package to virtual environment 
-link tools/sortmerna-2.1-linux-64/indexdb_rna
-link tools/sortmerna-2.1-linux-64/sortmerna
+link tools/sortmerna-2.1/indexdb_rna
+link tools/sortmerna-2.1/sortmerna
 
 # Check if SortMeRNA was installed properly
 indexdb_rna -h

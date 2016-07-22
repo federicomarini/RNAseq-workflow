@@ -5,7 +5,7 @@
 #$ -e workflow_error.txt
 #$ -o workflow_stdout.txt
 #$ -pe threaded 24
-#$ -l mem_free=32G
+#$ -l mem_free=64G
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -117,7 +117,7 @@ alignedLog="${outputFolder}/4_aligned_sequences/aligned_logs/"
 alignedStat="${outputFolder}/4_aligned_sequences/aligned_stats/"
 
 # featureCounts
-finalCounts="${outputFolder}/5_inal_counts"
+finalCounts="${outputFolder}/5_final_counts"
 
 
 # - - - - - - - - - - -

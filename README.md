@@ -4,20 +4,20 @@ output: html_document
 # RNAseq Workflow
 #### Thomas W. Battaglia
 #### tb1280@nyu.edu
-#### 5/17/16
+#### 7/22/16
   
   
 ### Introduction  
 RNA seq is an emerging technology for deep RNA sequencing. Not only does RNA seq technology have the ability to analyze differences in gene expression between samples, but can discover new isoforms of genes and analyze SNP variation of particular genes. This tutorial will cover the basic workflow for analyzing RNA seq data on host tissue. It will not cover the workflow for analyzing RNA seq on microbial community samples. For analysis of the meta-transcriptome using RNA seq, see the workflow for Whole Genome Sequencing Metagenomics (WGS Metagenomics) in a different tutorial.
 
 ### 1A. Setup new directory for analysis
-Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory ```pwd``` is within the ```new_analysis``` folder created during the first step.
+Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory ```pwd``` is within the ```rnaseq_analysis``` folder created during the first step.
 
 **input** : per sample sequencing files (.fastq)  
 **genome** : directory for storing genome of interest (.fasta/.fna)  
 **annotation** : directory for storing the annotation file associated with host genome (.gtf/.gff3)  
 **index** : directory that will store STAR aligner's index files   
-**tools** : directory to store dependencies required for analysis (SortMeRNA)  
+**tools** : directory to store dependencies required for analysis  
 **venv** : a virtual environment of python to store all dependencies
 
 ```
@@ -36,9 +36,12 @@ mkdir tools
 ```
 
 ### 1B. Setup new virtual environment to store tools
-A new virtual environment will keep all the tools that are required for analysis in its own folder so that there are no errors intorduced into the system python installation and/or break and tools that require a particular version. Most of the tools require python 2.7+. After creating and activating the virtualenv, you should see ```(venv)``` on the command line.
+A new virtual environment will keep all the tools that are required for analysis in its own folder so that there are no errors intorduced into the system python installation and/or break and tools that require a particular version. Most of the tools require python 2.7+. After creating and activating the virtualenv, you should see ```(venv)``` on the command line. To check what version of python you are currently using, run the command ```python --version```.  
 
 ```bash
+# Load python (if not set on Python 2.7)
+module load python/2.7.3
+
 # Install the virtualenv package
 pip install virtualenv --user
 
@@ -78,6 +81,7 @@ C. **Trim Galore!**
 D. **SortMeRNA**  
 E. **STAR-aligner**  
 F. **Subread**  
+G. **MultiQC**  
 
 
 -----
@@ -208,6 +212,19 @@ link tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
 featureCounts -v
 ```
 
+#### 2G. Install MultiQC
+**Link:** http://multiqc.info/  
+"MultiQC searches a given directory for analysis logs and compiles a HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools."  
+
+```bash
+# Download MultiQC to the 'tools' folder
+pip install multiqc
+
+# Check if MultiQC was installed properly
+multiqc -v
+```
+
+
 -----
 
 ### 3. Download host genome and annotation file
@@ -277,8 +294,8 @@ qsub make_index.sh 101
 Once the index has been generated and all of the tools are installed, it is time to start the alignment workflow. The workflow is stored as a shell file which has ```for``` loops to iterate over each input ```fastq``` file. This setup allows the shell file to be submitted to the cluster as a job. The workflow will place files generated during processing into the correct folders.
 
 Before submitting the command, make sure you change the variables within the file to reflect your data set.  
-- [ ] **qualityCutoff** : The minimum Phred score to retain nucleotides  
-- [ ] **trimLength** :  The minimum length of the sequence to keep after quality trimming. (Typically 50% or greater)  
+- [ ] **qualityCutoff** : The minimum Phred score to retain nucleotides  [Default = 20]
+- [ ] **trimLength** :  The minimum length of the sequence to keep after quality trimming. Typically 50% or greater. [Default = 50]  
 
 ```bash
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow.sh

@@ -1,0 +1,297 @@
+##### Ensembl 
+# Version GRCm38
+http://www.ensembl.org/info/data/ftp/index.html
+```bash
+# Download mouse genome to the 'genome' folder
+wget -P genome/ http://ftp.ensembl.org/pub/current_fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
+
+# Download genome annotation file to the 'annotation' folder
+wget -P annotation/ http://ftp.ensembl.org/pub/current_gtf/mus_musculus/Mus_musculus.GRCm38.85.gtf.gz
+
+# Decompress
+gunzip genome/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
+gunzip annotation/Mus_musculus.GRCm38.84.gtf.gz
+```
+
+
+
+#### Step 1. Download and place sequences into a folder.  
+  
+#### Step 2. FastQC
+Download the script below to use for analysis of your sequencing files. You must provide the name of the folder where your sequences are located as an input when using this script.
+
+```
+fastqc
+``` 
+
+  
+#### Step 3. Cutadapt 
+Cutadapt is used to remove contamination and bases with very low quality scoring. Typically a phred score of 20 (99%) is optimal for most alignment analysis, but if you are using this data to analyze SNP and variant data, it is best to use a score of 30 (99.9%)
+
+```
+cutadapt 
+```
+
+#### Step 4. SortMeRNA
+
+```
+sortmerna 
+```
+
+#### Step 5. STAR-aligner
+
+```
+STAR 
+```
+
+#### Step 6. SAMStat
+
+```
+samstat 
+```
+
+#### Step 7. Summarize alignments to gene counts using ```featureCounts```
+Now that you have created the alignment files (.bam) for each sample, you can now move ahead to analysis and plotting. The .BAM file will be used to generate read counts per gene and subsequently generate a gene abundance table across all samples. This table will then be used within the statistical analysis program DESeq2.
+
+```
+featureCounts 
+```
+
+
+
+### Analysis Workflow
+
+
+
+
+#### Step 1. Compare groups using DESeq2
+A more detailed guide can be found HERE(LINK), but this will cover the important steps for performing the statistical analysis.
+```
+# Load required libraries
+library(DESeq2)
+library(fdrtool)
+
+# Import gene count data txt file
+
+# Import sample metadata txt file
+
+# Relevel so we know whats control group
+metadatas$Group <- relevel(targets$Group, ref = "CON")
+
+# Make Deseq2 object from featureCounts object -----------
+ddsMat <- DESeqDataSetFromMatrix(countData = fc$counts,
+                                 colData = metadata,
+                                 design = ~Group)
+                                 
+# Run DESEq2
+ddsMat <- DESeq(ddsMat)
+
+# Get results from testing
+res_out <- results(ddsMat, pAdjustMethod = "fdr")
+
+# Generate summary of testing
+summary(res_out)
+
+```
+
+
+#### Step 2. Annotate geneID's to gene names
+```
+
+
+
+
+# Create folder locations for outputs
+#-----------------------------------------------------------#
+InitialQCFolder="${OutputFolder}initial_qc/"
+
+TrimmedFolder="${OutputFolder}trimmed_files/reads/"
+TrimmedReports="${OutputFolder}trimmed_files/post_trim_qc/"
+
+SortmernaAligned="${OutputFolder}rRNA/aligned/"
+SortmernaFiltered="${OutputFolder}rRNA/filtered/"
+SortmernaLogs="${OutputFolder}rRNA/logs/"
+
+AlignedSequences="${OutputFolder}aligned_sequences"
+AlignedBAM="${OutputFolder}/aligned_sequences/aligned_bam/"
+AlignedLog="${OutputFolder}/aligned_sequences/aligned_logs/"
+AlignedStat="${OutputFolder}/aligned_sequences/aligned_stats/"
+
+
+
+
+#-----------------------------------------------------------#
+# Start Analysis!
+#-----------------------------------------------------------#
+
+# FastQC
+#-----------------------------
+if [ "$InitalQC" -eq 1 ]; then
+
+    echo "Processing Raw Reads for Quality Analysis..."
+    mkdir -p $InitialQCFolder
+
+    # Run Quality Analysis on Raw Reads
+    for seq in $InputFiles*; do
+        fastqc -o $InitialQCFolder --noextract -t 12 $seq
+    done
+
+
+fi
+
+
+
+# Cutadapt
+#-----------------------------------
+if [ "$RemoveAdapters" -eq 1 ]; then
+
+    echo "Filtering Low Quality Bases and Adapters..."
+    mkdir -p $TrimmedFolder
+    mkdir -p $TrimmedReports
+
+    # Cutadapt Trimming
+    for seq in $InputFiles*; do
+        FQ=`basename $seq .fastq.gz`
+        cutadapt -q $QualityCutoff -m $TrimLength -a $TrimAdapterSeq -o ${TrimmedFolder}${FQ}_trimmed.fq $seq
+    done
+
+
+    # FastQC Trimmed Data
+    for seq in $TrimmedFolder*.fq; do
+        fastqc --noextract -o $TrimmedReports -t 12 $seq
+    done
+
+fi
+
+
+
+# SortMeRNA
+#-----------------------------
+if [ "$RemoveRNA" -eq 1 ]; then
+    echo "Removing rRNA Sequences..."
+    chmod +x packages/sortmerna/sortmerna
+    mkdir -p $SortmernaAligned
+    mkdir -p $SortmernaFiltered
+    mkdir -p $SortmernaLogs
+
+    # Initialize Database
+    SortmernaREF=${SortmernaDB}/rRNA_databases/silva-arc-16s-id95.fasta,${SortmernaDB}/index/silva-arc-16s-id95:${SortmernaDB}/rRNA_databases/silva-arc-23s-id98.fasta,${SortmernaDB}/index/silva-arc-23s-id98:${SortmernaDB}/rRNA_databases/silva-bac-16s-id90.fasta,${SortmernaDB}/index/silva-bac-16s-id95:${SortmernaDB}/rRNA_databases/silva-bac-23s-id98.fasta,${SortmernaDB}/index/silva-bac-23s-id98:${SortmernaDB}/rRNA_databases/silva-euk-18s-id95.fasta,${SortmernaDB}/index/silva-euk-18s-id95:${SortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${SortmernaDB}/index/silva-euk-28s-id98
+
+
+    # Align to rRNA databases
+    for trim in $TrimmedFolder*.fq; do
+        FQ=`basename $trim .fq`
+
+        packages/sortmerna/sortmerna --ref $SortmernaREF --reads $trim --aligned ${SortmernaAligned}/${FQ}_aligned --other ${SortmernaFiltered}/${FQ}_filtered --fastx --log -a 16 -v
+
+
+        # Move Log Files into correct order
+        mv ${SortmernaAligned}/${FQ}_aligned.log $SortmernaLogs
+
+        # Removed Cutadapt Trimmed Files to save space
+        rm $trim
+
+        # Gzip the sequences that aligned to rRNA databases to save space
+        gzip ${SortmernaAligned}${FQ}_aligned.fq
+    done
+
+fi
+
+
+
+
+# STAR Index Builder
+#-----------------------------
+# Build an index for alignment. Only needs to be run once.
+if [ "$IndexGenome" -eq 1 ]; then
+    chmod +x packages/STAR/bin/Linux_x86_64/STAR
+    packages/STAR/bin/Linux_x86_64/STAR --runMode genomeGenerate --genomeDir $GenomeIndex --genomeFastaFiles $Genome --sjdbGTFfile $GenomeGTF --sjdbOverhang 49 --runThreadN 16
+fi
+
+
+
+
+
+# Align Sequences using STAR
+#-----------------------------
+if [ "$AlignSequences" -eq 1 ]; then
+
+    # Make Directories
+    mkdir -p $AlignedSequences
+    mkdir -p $AlignedBAM
+    mkdir -p $AlignedLog
+    mkdir -p $AlignedStat
+
+    # Not needed each time. Only after first run due to permissions error
+    chmod +x packages/STAR/bin/Linux_x86_64/STAR
+
+    # Align to STAR aligner
+    for seq in $SortmernaFiltered*; do
+
+        # Variables--------
+        seq_dir=$(dirname ${seq})/
+        baseName=`basename $seq .fq`
+
+        # STAR--------------
+        packages/STAR/bin/Linux_x86_64/STAR --genomeDir $GenomeIndex --readFilesIn $seq --runThreadN 16 --outFileNamePrefix $AlignedSequences/$baseName --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --readFilesCommand zcat
+
+        # gzip to save space
+        gzip $seq
+    done
+
+
+
+    # Move results into the correct places-----------
+
+    # Run Samstat to get alignment stats. Move (.BAM) files into proper folder.
+    for seq in $AlignedSequences/*.bam; do
+        samstat $seq
+        mv $seq $AlignedBAM/
+    done
+
+    # Move Log Files into correct folder
+    for log in $AlignedSequences/*Log.final.out; do
+        mv $log $AlignedLog/
+    done
+
+    # Move Samstat to correct folder
+    for html in $AlignedSequences/*.html; do
+        mv $html $AlignedStat/
+    done
+
+
+
+
+
+    # Remove unnecessary output files----------------
+
+    # Remove *Log.out files
+    for log in $AlignedSequences/*Log.out; do
+        rm $log
+    done
+
+    # Remove *Log.out files
+    for log in $AlignedSequences/*Log.progress.out; do
+        rm $log
+    done
+
+    # Remove (.Tab) Files
+    for seq in $AlignedSequences/*out.tab; do
+        rm $seq
+    done
+
+fi
+
+
+# - - - - - - - - - - - - - -
+# Run Subread (featureCounts)
+# - - - - - - - - - - - - - -
+echo "Summarizing gene counts..."
+mkdir -p $finalCounts
+
+#featureCounts \
+#-a $annotationFile \
+#-o $finalCounts/final_counts.txt \
+#-T 12 \
+#$alignedBAM/*
+

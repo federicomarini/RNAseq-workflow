@@ -145,7 +145,8 @@ tar -zxvf tools/2.1.tar.gz -C tools/
 rm -rf tools/2.1.tar.gz
 
 # Compile scripts
-bash tools/sortmerna-2.1/build.sh
+cd tools/sortmerna-2.1/ && bash build.sh
+cd ../..
 
 # Link package to virtual environment 
 link tools/sortmerna-2.1/indexdb_rna
@@ -159,7 +160,7 @@ sortmerna --version
 Next we need to generate an index for the SortMeRNA database.
 ```bash
 # Set variable for location of index files
-sortmernaDB="tools/sortmerna-2.1-linux-64"
+sortmernaDB="tools/sortmerna-2.1"
 
 # Set location for database
 sortmernaREF=${sortmernaDB}/rRNA_databases/silva-arc-16s-id95.fasta,${sortmernaDB}/index/silva-arc-16s-id95:\
@@ -169,7 +170,7 @@ ${sortmernaDB}/rRNA_databases/silva-bac-23s-id98.fasta,${sortmernaDB}/index/silv
 ${sortmernaDB}/rRNA_databases/silva-euk-18s-id95.fasta,${sortmernaDB}/index/silva-euk-18s-id95:\
 ${sortmernaDB}/rRNA_databases/silva-euk-28s-id98.fasta,${sortmernaDB}/index/silva-euk-28s-id98
 
-# Generate indexs
+# Generate indexs (will take ~5 minutes)
 indexdb_rna --ref $sortmernaREF 
 ```
 
@@ -221,7 +222,7 @@ featureCounts -v
 pip install multiqc
 
 # Check if MultiQC was installed properly
-multiqc -v
+multiqc --version
 ```
 
 
@@ -242,9 +243,6 @@ wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRC
 
 # Download genome annotation file to the 'annotation' folder
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
-
-# Download genome annotation file to the 'annotation' folder
-wget -P annotation/ http://ftp.ensembl.org/pub/current_gtf/mus_musculus/Mus_musculus.GRCm38.85.gtf.gz
 
 # Decompress
 gunzip genome/GRCm38.p4.genome.fa.gz

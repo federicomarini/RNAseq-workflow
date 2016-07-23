@@ -198,8 +198,8 @@ for trim in $outputTrimFolder/*.fq; do
     # Gzip the aligned rRNA sequences to save space
     gzip ${sortMeRnaAligned}${FQ}_aligned.fq
 
-    # Gzip the sequences that aligned to rRNA databases to save space
-    gzip ${sortMeRnaAligned}${FQ}_filtered.fq
+    # Gzip the sequences that didn't aligned to save space
+    gzip ${sortMeRnaFiltered}${FQ}_filtered.fq
 done
 
 
@@ -257,20 +257,10 @@ for tmp in $alignedSequences/*_STARtmp; do
     rm -rf $tmp
 done
 
-
-# - - - - - - - - - - - - -
-# Run samtools + move BAM
-# (Fix samstat install: TODO)
-# - - - - - - - - - - - - -
+# Move Sorted BAM
 for seq in $alignedSequences/*.bam; do
-#samstat $seq
     mv $seq $alignedBAM/
 done
-
-# Move Samstat to correct folder
-#for html in $alignedSequences/*.html; do
-#    mv $html $alignedStat/
-#done
 
 
 # - - - - - - - - - - - - - -
@@ -289,6 +279,12 @@ featureCounts \
 -T $NSLOTS \
 $dirlist
 
+
+# - - - - - - - - - - - - - -
+# Run MultiQC 
+# - - - - - - - - - - - - - -
+multiqc $outputFolder \
+--o $outputFolder
 
 
 # End of script

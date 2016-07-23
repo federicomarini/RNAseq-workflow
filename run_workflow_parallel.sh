@@ -90,11 +90,11 @@ echo -e "- - - - - - - - - - - - - - - \n"
 # - - - - - - - - - - - -
 
 # Input/Output
-outputFolder="output"
+outputFolder=$(pwd)/"output"
 mkdir -p $outputFolder
 
 # Genome/Annotation
-genomeIndexDir="index/"
+genomeIndexDir=$(pwd)/"index/"
 
 # QC data
 outputQcFolder="${outputFolder}/1_initial_qc"

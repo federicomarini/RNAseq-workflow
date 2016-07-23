@@ -64,8 +64,7 @@ fi
 # - - - - - - - - - - - -
 
 # Input/Output
-inputFiles=input/*
-outputFolder="output"
+outputFolder=$(pwd)/"output"
 mkdir -p $outputFolder
 
 # Annotation file

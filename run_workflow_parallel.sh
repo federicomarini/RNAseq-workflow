@@ -90,7 +90,6 @@ echo -e "- - - - - - - - - - - - - - - \n"
 # - - - - - - - - - - - -
 
 # Input/Output
-inputFiles=input/*
 outputFolder="output"
 mkdir -p $outputFolder
 

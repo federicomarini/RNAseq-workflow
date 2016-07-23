@@ -310,47 +310,82 @@ qsub run_workflow.sh
 -----
 
 ### 7. Import count table to DESeq2 and run differential expression analysis
-Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis. See this tutorial for more information about using DESeq2 http://www.bioconductor.org/help/workflows/rnaseqGene/
+Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis using the R-programming language. It is highly reccomended to use RStudio when writing R code and generating R-related analyses. You can download RStudio for your system here: https://www.rstudio.com/products/rstudio/download/  
 
-One additional required file which is needed, is a type of mapping file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).
+One you have an R environment appropriatley set up, you can begin to import the gene counts within the ```5_final_counts``` folder. This tutorial will use DESeq2 to normalize and perform the statistical analysis between sample groups. You can the links below for a more in depth walk through of RNAseq analysis using R: 
+* http://www.bioconductor.org/help/workflows/rnaseqGene/  
+* http://bioconnector.org/workshops/r-rnaseq-airway.html
+* http://www-huber.embl.de/users/klaus/Teaching/DESeq2Predoc2014.html
+* http://www-huber.embl.de/users/klaus/Teaching/DESeq2.pdf
+* https://web.stanford.edu/class/bios221/labs/rnaseq/lab_4_rnaseq.html
+* http://www.rna-seqblog.com/which-method-should-you-use-for-normalization-of-rna-seq-data/
 
-#####  First install the required packages for analysis. It is best to use an IDE like RSudio for the analysis: https://www.rstudio.com/products/rstudio/download/
+One additional required file which is needed is a type of metadata file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).
+
+| SampleID        | Group           | Time  |
+| ------------- |:-------------:| -----:|
+| Sample1.A   | Treatment | Day0 |
+| Sample2.A      | Control      |   Day0 |
+| Sample1.B | Treatment      |    Day1 |
+| Sample2.B | Control      |    Day1 |
+
+#####  
 ```R
 # Install required libraries
 source("https://bioconductor.org/biocLite.R")
 biocLite("DESeq2")
 biocLite("ggplot2")
+biocLite("gplots")
 biocLite("clusterProfiler")
 biocLite("biomaRt")
 biocLite("ReactomePA")
 biocLite("DOSE")
+biocLite("KEGG.db")
 biocLite("pathview")
 biocLite("org.Mm.eg.db")
+biocLite("org.Hs.eg.db")
 biocLite("pheatmap")
 biocLite("genefilter")
 biocLite("fdrtool")
 biocLite("RColorBrewer")
+biocLite("airway")
+biocLite("topGO")
+biocLite("dplyr")
+biocLite("NMF")
 ```
 
-Be sure to copy the ```final_counts.txt``` file generate from featureCounts step to your set working directory, or specify the full location when importing the table.  
+Be sure to copy the ```final_counts.txt``` file generate from featureCounts step to your set working directory, or specify the full location when importing the table. 
 ```R
 # Load required libraries
 library(DESeq2)
 library(ggplot2)
+library(airway)
+
+
+# If you do not want to run the alignment steps, and would like to just perform the R analysis
+# run the commands below and skip to the "Run DESEq2" step.
+data("airway")
+se <- airway #Assign example data to new variable
+se$dex <- relevel(se$dex, "untrt") #Revel so control is first
+dds <- DESeqDataSet(se, design = ~ cell + dex) #Make DESeq2 dataset
+coldata <- colData(se) #View the variables within the example data
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Set working directory. (if needed)
 setwd("~/path/to/working/directory/")
 
 # Import counts table from featureCounts
 # Skip first row (or delete before import)
-counts <- read.delim("~/path/to/working/directory/final_counts.txt", skip = 1, row.names = 1)
+counts <- read.delim("path/to/final_counts.txt", skip = 1, row.names = 1)
 
 # Remove 'Length' column
 counts <- counts[,-1]
 
 # Import metadata (or create a new dataframe)
 # The sample identifers must be the row names for the dataframe and must match the names of the counts table columns.
-metadata <- read.delim("sample_mapping_file.txt", row.names = 1)
+metadata <- read.delim("path/to/sample_mapping_file.txt", row.names = 1)
 
 # Relevel (if needed) to know which group is the reference (control)
 metadata$Group <- relevel(metadata$Group, ref = "Control")
@@ -359,12 +394,12 @@ metadata$Group <- relevel(metadata$Group, ref = "Control")
 # countData : count dataframe
 # colData : sample metadata in the dataframe with row names as sampleID's
 # design : The design of the comparisons to use. Use (~) before the name of the column variable to compare
-ddsMat <- DESeqDataSetFromMatrix(countData = counts,
+dds <- DESeqDataSetFromMatrix(countData = counts,
                                  colData = metadata,
                                  design = ~Group)
                                  
 # Run DESEq2
-ddsMat <- DESeq(ddsMat)
+ddsMat <- DESeq(dds)
 
 # Get results from testing with FDR adjust pvalues
 res_out <- results(ddsMat, pAdjustMethod = "fdr")
@@ -375,7 +410,6 @@ res_out <- res_out[order(res_out$padj), ]
 # Generate summary of testing. 
 # q-value cutoff is 1% by default.
 summary(res_out)
-
 ```
 
 -----
@@ -390,19 +424,30 @@ Depending upon the data set, you may have to change the database for gene annota
 # Run this command to get a list of available marts
 biomaRt::listDatasets(useEnsembl(biomart="ensembl"))
 ```
+
 ##### Get GeneID's for each identifier and add it to the results table
 ```R
 # Load library
 library(biomaRt)
 
-# Get information from ENSEMBL (change mart depending upon species)
+# Get information from ENSEMBL (change mart depending upon species). If you are
+# using 'airway' example data, then you must specify the human biomart.
+human <- useMart(host="www.ensembl.org", 
+                 biomart = "ENSEMBL_MART_ENSEMBL", 
+                 dataset="hsapiens_gene_ensembl")
+
+mouse <- useMart(host="www.ensembl.org", 
+                 biomart = "ENSEMBL_MART_ENSEMBL", 
+                 dataset="mmusculus_gene_ensembl")
+
+# Get annotation information based on ID's
 geneIDs <- getBM(filters = "ensembl_gene_id", 
                  attributes = c("ensembl_gene_id", 
                                 "external_gene_name", 
                                 "description", 
                                 "entrezgene"), 
                  values = row.names(res_out), 
-                 mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"), 
+                 mart = mouse, 
                  uniqueRows = T)
 
 # Get row numbers that correspond to geneID's and annotation data            
@@ -414,14 +459,14 @@ res_out$gene_name <- geneIDs$external_gene_name[idx]
 res_out$description <- geneIDs$description[idx]
 res_out$entrez <- geneIDs$entrezgene[idx]
             
-# Subset for only significant genes (q<0.05)
+# Subset for only significant genes (q < 0.05)
 res_out_sig <- subset(res_out, padj < 0.05)
 ```
 
 ##### Write all the important results to .txt files
 ```R
 # Write normalized gene counts to a .txt file
-write.table(x = as.data.frame(counts(ddsMat), normalized = T), 
+write.table(x = as.data.frame(counts(dds), normalized = T), 
             file = 'DESeq2_normalized_counts.txt', 
             sep = '\t', 
             quote = F,
@@ -495,6 +540,7 @@ library(KEGG.db)
 library(DOSE)
 library(pathview)
 library(org.Mm.eg.db)
+library(org.Hs.eg.db)
 
 # Create a matrix of gene entrez ID's and log fold changes
 gene_matrix <- res_out_sig$logFC
@@ -544,6 +590,10 @@ reactome_enrich <- enrichPathway(gene = gene_matrix, organism = 'mouse', pvalueC
 # Get table of results
 summary(reactome_enrich)
 ```
+
+### 10. Going further with RNAseq analysis
+(TODO)
+
 
 
 ### Citations:

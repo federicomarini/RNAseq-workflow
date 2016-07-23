@@ -108,7 +108,7 @@ outputTrimFolder="${outputFolder}/2_trimmed_output"
 sortMeRnaAligned="${outputFolder}/3_rRNA/aligned/"
 sortMeRnaFiltered="${outputFolder}/3_rRNA/filtered/"
 sortMeRnaLogs="${outputFolder}/3_rRNA/logs/"
-sortmernaDB="tools/sortmerna-2.1-linux-64"
+sortmernaDB="tools/sortmerna-2.1"
 
 # Alignment
 alignedSequences="${outputFolder}/4_aligned_sequences"

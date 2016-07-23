@@ -57,7 +57,7 @@ function link() { ln -sv $(readlink -f "$1") $(pwd)/venv/bin/; }
 If there is an error during the virtualenv creation step that states ```The executable python2.7 (from --python=python2.7) does not exist```, then the cluster environment's python version is not set for Python 2.7+, so the command ```module load python/2.7.3``` must be run first before running the ```virtualenv venv --python=python2.7``` command.
 
 
-### 1C. Demo dataset
+### 1c. Demo dataset
 If you want to use a demo dataset to practice the RNAseq alignment workflow, run one of the commands below to place a fastq file in the ```input``` folder.
 ```
 # Download publically available mouse RNAseq fastq file. (2 biological replicates)

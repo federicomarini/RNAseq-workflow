@@ -113,9 +113,6 @@ alignedLog="${outputFolder}/4_aligned_sequences/aligned_logs/"
 alignedStat="${outputFolder}/4_aligned_sequences/aligned_stats/"
 alignedCounts="${outputFolder}/4_aligned_sequences/aligned_counts/"
 
-# featureCounts
-finalCounts="${outputFolder}/5_final_counts"
-
 
 # - - - - - - - - - - -
 # Run FASTQC

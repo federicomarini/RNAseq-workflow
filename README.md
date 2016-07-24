@@ -210,7 +210,7 @@ link tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
 featureCounts -v
 ```
 
-#### 2G. Install MultiQC
+#### 2g. Install MultiQC
 **Link:** http://multiqc.info/  
 "MultiQC searches a given directory for analysis logs and compiles a HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools."  
 

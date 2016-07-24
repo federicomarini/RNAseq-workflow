@@ -296,15 +296,32 @@ wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/output
 
 ### 6a. Run the workflow in parallel
 The job can be submitted to the cluster once you have changed the parameters to reflect your data and you have placed the ```.fastq.gz``` files into the folder, ```input```. The command is written to submit an array job, which means you must specify how many times the job should run. In this case it is dependent upon how many individual ```.fastq.gz``` files that are located in the ```input``` folder. If there are 6 different samples within the folder you would run the command ```qsub -t 1:6 run_workflow.sh```, but if you have 10 files, you would run the command ```qsub -t 1:10 run_workflow.sh```. The ```-t``` flag corresponds to how many different commands should be submitted.
-
 ```bash
 qsub -t 1:2 run_workflow.sh
 ```
-
 #### Note: The command is written for SGE clusters, but if you have a different cluster set up, you can change the variable ```$SGE_TASK_ID``` to the correct array style variable.
 
+#### Output from running the workflow (TODO)
+Each one is has a folder name that begins with a number, which corresponds to the step at which it was run. The main files that are the most useful are the aligned ```.BAM``` files located in the ```4_aligned_sequences/aligned_bam/``` folder.
+```bash
+── output/
+│   └── 1_initial_qc/
+│   └── 2_trimmed_output/
+│   └── 3_rRNA
+│       ├── aligned/
+│       ├── filtered/
+│       ├── logs/
+│   └── 4_aligned_sequences
+│       ├── aligned_bam
+│       ├── aligned_logs
+│       ├── aligned_stats
+│       ├── aligned_counts
+│   └── 5_final_counts
+│   └── 6_multiQC
+```
+
 ### 6b. Process the output files and generate a report 
-The job can be submitted to the cluster once you have changed the parameters to reflect your data and you have placed the ```fastq``` files into the folder, ```input```.
+After the main workflow has finished running, you will have generated aligned ```.bam``` files for each sample. These files only give the coordinates for the sequence alignments on the genome, and must be summarized to give gene counts per sample, before any statistical analysis can be performed. To do this we perform further processing the output files using the ```output_processing.sh``` command. There is no need a parallel array script and the command can be submitted as is as long as no folder names/locations were changed in main workflow command.
 ```bash
 qsub output_processing.sh
 ```

@@ -229,31 +229,34 @@ multiqc --version
 A host genome and annotation file are required for a complete RNA seq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow.
 
 #### 3a. Mouse genome
-There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment. ***See this paper for more information:***(TODO)  
+There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment.  
 
+**Gencodes:**
+- http://www.gencodegenes.org/mouse_releases/current.html  
+- ftp://ftp.sanger.ac.uk/pub/gencode/gencode_workshops/Malawi2015/module_presentation.pdf  
+- ftp://ftp.sanger.ac.uk/pub/gencode/gencode_workshops/Malawi2015/module_material.pdf
 
-##### Gencodes (recommended)
-http://www.gencodegenes.org/mouse_releases/current.html  
 ```bash
 # Download mouse genome to the 'genome' folder
 wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRCm38.p4.genome.fa.gz
 
 # Download genome annotation file to the 'annotation' folder
-wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M9/gencode.vM9.annotation.gtf.gz
+wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/gencode.vM10.annotation.gtf.gz
 
 # Decompress
 gunzip genome/GRCm38.p4.genome.fa.gz
-gunzip annotation/gencode.vM9.annotation.gtf.gz
+gunzip annotation/gencode.vM10.annotation.gtf.gz
 ```
 
 #### 3b. Human genome
+http://www.gencodegenes.org/releases/current.html  
 
 ```bash
 # Download human genome to the 'genome' folder
-wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.transcripts.fa.gz
+wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.p7.genome.fa.gz
 
 # Download genome annotation file to the 'annotation' folder
-wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_24/gencode.v24.annotation.gtf.gz
+wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz
 
 # Decompress
 gunzip genome/gencode.v24.transcripts.fa.gz

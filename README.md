@@ -180,11 +180,11 @@ indexdb_rna --ref $sortmernaREF
 wget -P tools/ https://github.com/alexdobin/STAR/archive/2.5.2b.zip
 
 # Unzip and remove compressed file
-unzip tools/2.5.2a.zip -d tools/
-rm -rf tools/2.5.2a.zip
+unzip tools/2.5.2b.zip -d tools/
+rm -rf tools/2.5.2b.zip
 
 # Link package to virtual environment 
-link tools/STAR-2.5.2a/bin/Linux_x86_64/STAR
+link tools/STAR-2.5.2b/bin/Linux_x86_64/STAR
 
 # Check if STAR was installed properly
 STAR --version

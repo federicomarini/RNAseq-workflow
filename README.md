@@ -177,7 +177,7 @@ indexdb_rna --ref $sortmernaREF
 
 ```bash
 # Download STAR to the 'tools' folder
-wget -P tools/ https://github.com/alexdobin/STAR/archive/2.5.2a.zip
+wget -P tools/ https://github.com/alexdobin/STAR/archive/2.5.2b.zip
 
 # Unzip and remove compressed file
 unzip tools/2.5.2a.zip -d tools/

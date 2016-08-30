@@ -2,10 +2,10 @@
 #$ -cwd
 #$ -S /bin/bash
 #$ -N Output_Processing
-#$ -e Process_error.txt
-#$ -o Process_stdout.txt
+#$ -e Post_error.txt
+#$ -o Post_stdout.txt
 #$ -pe threaded 24
-#$ -l mem_free=32G
+#$ -l mem_free=64G
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 # @ Thomas W. Battaglia
@@ -97,6 +97,7 @@ dirlist=$(ls -t ./*.bam | tr '\n' ' ')
 featureCounts \
 -a $annotationFile \
 -o $finalCounts/final_counts.txt \
+-g 'gene_name' \
 -T $NSLOTS \
 $dirlist
 

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Thomas W. Battaglia" />
 
-<meta name="date" content="2016-08-29" />
+<meta name="date" content="2016-08-30" />
 
 <title>RNAseq Workflow</title>
 
@@ -86,7 +86,7 @@ code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Inf
 
 <div class="authordate">
 <span class="author"><em>Thomas W. Battaglia</em></span>
-• <span class="date"><em>2016-08-29</em></span>
+• <span class="date"><em>2016-08-30</em></span>
 </div>
 </div>
 
@@ -141,15 +141,19 @@ code > span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Inf
 <div id="c.-download-an-example-dataset-optional" class="section level4">
 <h4>1c. Download an example dataset (Optional)</h4>
 <p>If you want to use an example dataset to practice the RNAseq alignment workflow, run the commands below to place a fastq file in the <code>input</code> folder.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># Download publically available mouse RNAseq fastq file. (2 biological replicates)</span>
-<span class="co"># https://www.encodeproject.org/experiments/ENCSR648YEP/</span>
-<span class="kw">wget</span> -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
-<span class="kw">wget</span> -P input/ https://www.encodeproject.org/files/ENCFF473WMT/@@download/ENCFF473WMT.fastq.gz</code></pre></div>
+<p><strong>Citation: </strong> <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI" class="uri">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI</a><br />
+The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression.Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># Download publically available mouse RNAseq fastq files.</span>
+<span class="co"># http://www.ebi.ac.uk/ena/data/view/PRJNA252388</span>
+<span class="kw">wget</span> -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/001/SRR1374921/SRR1374921.fastq.gz
+<span class="kw">wget</span> -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/002/SRR1374922/SRR1374922.fastq.gz
+<span class="kw">wget</span> -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/003/SRR1374923/SRR1374923.fastq.gz
+<span class="kw">wget</span> -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/004/SRR1374924/SRR1374924.fastq.gz</code></pre></div>
 </div>
 </div>
 <div id="installing-required-tools" class="section level3">
 <h3>2. Installing required tools</h3>
-<p>This workflow requires many different tools. Some of these tools maybe available on your cluster environment, but to ensure the correct versioning of the tools, it is suggested to install them again inside a virtual environment. See <a href="http://docs.python-guide.org/en/latest/dev/virtualenvs/" class="uri">http://docs.python-guide.org/en/latest/dev/virtualenvs/</a> for more information about using virtual-environments. <br> Other tools that are required for processing are:<br />
+<p>This workflow requires many different tools. Some of these tools maybe available on your cluster environment, but to ensure the correct versioning of the tools, it is suggested to install them again inside a virtual environment. See <a href="http://docs.python-guide.org/en/latest/dev/virtualenvs/" class="uri">http://docs.python-guide.org/en/latest/dev/virtualenvs/</a> for more information about using virtual-environments. <br> Tools that are required for processing are:<br />
 a. <strong>cutadapt</strong><br />
 b. <strong>FastQC</strong><br />
 c. <strong>Trim Galore!</strong><br />
@@ -260,14 +264,14 @@ g. <strong>MultiQC</strong></p>
 <br> <strong>Link:</strong> <a href="http://subread.sourceforge.net/" class="uri">http://subread.sourceforge.net/</a><br />
 <strong>Link:</strong> <a href="http://bioinf.wehi.edu.au/featureCounts/" class="uri">http://bioinf.wehi.edu.au/featureCounts/</a></p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># Download Subread to the 'tools' folder</span>
-<span class="kw">wget</span> -P tools/ https://sourceforge.net/projects/subread/files/subread-1.5.0-p3/subread-1.5.0-p3-Linux-x86_64.tar.gz
+<span class="kw">wget</span> -P tools/ https://sourceforge.net/projects/subread/files/subread-1.5.1/subread-1.5.1-Linux-x86_64.tar.gz
 
 <span class="co"># Unzip and remove compressed file</span>
-<span class="kw">tar</span> -zxvf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz -C tools/
-<span class="kw">rm</span> -rf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz
+<span class="kw">tar</span> -zxvf tools/subread-1.5.1-Linux-x86_64.tar.gz -C tools/
+<span class="kw">rm</span> -rf tools/subread-1.5.1-Linux-x86_64.tar.gz
 
 <span class="co"># Link package to virtual environment </span>
-<span class="kw">link</span> tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
+<span class="kw">link</span> tools/subread-1.5.1-Linux-x86_64/bin/featureCounts
 
 <span class="co"># Check if Subread (featureCounts) was installed properly</span>
 <span class="kw">featureCounts</span> -v</code></pre></div>
@@ -446,7 +450,7 @@ countdata &lt;-<span class="st"> </span>countdata[ ,<span class="kw">c</span>(-<
 
 <span class="co"># Import metadata file</span>
 <span class="co"># - make row names the matching sampleID's from the countdata</span>
-smetadata &lt;-<span class="st"> </span><span class="kw">read.delim</span>(<span class="st">&quot;path/to/sample_mapping_file.txt&quot;</span>, <span class="dt">row.names =</span> <span class="dv">1</span>)
+metadata &lt;-<span class="st"> </span><span class="kw">read.delim</span>(<span class="st">&quot;path/to/sample_mapping_file.txt&quot;</span>, <span class="dt">row.names =</span> <span class="dv">1</span>)
 
 <span class="co"># Add sampleID's to the mapping file</span>
 metadata$sampleID &lt;-<span class="st"> </span><span class="kw">row.names</span>(metadata)

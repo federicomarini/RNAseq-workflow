@@ -60,20 +60,26 @@ Note: If there is an error during the virtualenv creation step that states ```Th
 
 
 #### 1c. Download an example dataset (Optional)
-If you want to use an example dataset to practice the RNAseq alignment workflow, run the commands below to place a fastq file in the ```input``` folder.
+If you want to use an example dataset to practice the RNAseq alignment workflow, run the commands below to place a fastq file in the ```input``` folder.  
+
+**Citation: ** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI  
+The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression.Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)  
 
 ```bash
-# Download publically available mouse RNAseq fastq file. (2 biological replicates)
-# https://www.encodeproject.org/experiments/ENCSR648YEP/
-wget -P input/ https://www.encodeproject.org/files/ENCFF377KCE/@@download/ENCFF377KCE.fastq.gz
-wget -P input/ https://www.encodeproject.org/files/ENCFF473WMT/@@download/ENCFF473WMT.fastq.gz
+# Download publically available mouse RNAseq fastq files.
+# http://www.ebi.ac.uk/ena/data/view/PRJNA252388
+wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/001/SRR1374921/SRR1374921.fastq.gz
+wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/002/SRR1374922/SRR1374922.fastq.gz
+wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/003/SRR1374923/SRR1374923.fastq.gz
+wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/004/SRR1374924/SRR1374924.fastq.gz
+
 ```
 
 
 ### 2. Installing required tools
 This workflow requires many different tools. Some of these tools maybe available on your cluster environment, but to ensure the correct versioning of the tools, it is suggested to install them again inside a virtual environment. See http://docs.python-guide.org/en/latest/dev/virtualenvs/ for more information about using virtual-environments.
 <br>
-Other tools that are required for processing are:  
+Tools that are required for processing are:  
 a. **cutadapt**  
 b. **FastQC**  
 c. **Trim Galore!**  
@@ -209,14 +215,14 @@ STAR --version
 
 ```bash
 # Download Subread to the 'tools' folder
-wget -P tools/ https://sourceforge.net/projects/subread/files/subread-1.5.0-p3/subread-1.5.0-p3-Linux-x86_64.tar.gz
+wget -P tools/ https://sourceforge.net/projects/subread/files/subread-1.5.1/subread-1.5.1-Linux-x86_64.tar.gz
 
 # Unzip and remove compressed file
-tar -zxvf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz -C tools/
-rm -rf tools/subread-1.5.0-p3-Linux-x86_64.tar.gz
+tar -zxvf tools/subread-1.5.1-Linux-x86_64.tar.gz -C tools/
+rm -rf tools/subread-1.5.1-Linux-x86_64.tar.gz
 
 # Link package to virtual environment 
-link tools/subread-1.5.0-p3-Linux-x86_64/bin/featureCounts
+link tools/subread-1.5.1-Linux-x86_64/bin/featureCounts
 
 # Check if Subread (featureCounts) was installed properly
 featureCounts -v
@@ -432,7 +438,7 @@ colnames(countdata) # make sure ID's are correct
 
 # Import metadata file
 # - make row names the matching sampleID's from the countdata
-smetadata <- read.delim("path/to/sample_mapping_file.txt", row.names = 1)
+metadata <- read.delim("path/to/sample_mapping_file.txt", row.names = 1)
 
 # Add sampleID's to the mapping file
 metadata$sampleID <- row.names(metadata)

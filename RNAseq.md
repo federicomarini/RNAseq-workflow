@@ -612,7 +612,6 @@ library(KEGG.db)
 library(DOSE)
 library(pathview)
 library(org.Mm.eg.db)
-library(org.Hs.eg.db)
 
 # Create a matrix of gene entrez ID's and log fold changes
 gene_matrix <- res_out_sig$logFC
@@ -622,7 +621,7 @@ names(gene_matrix) <- res_out_sig$entrez
 # - - - - - - - - - - - - - 
 # Enrich with KEGG database
 # - - - - - - - - - - - - - 
-kegg_enrich <- enrichKEGG(gene = gene_matrix,
+kegg_enrich <- enrichKEGG(gene = names(gene_matrix),
                  organism = 'mouse',
                  pvalueCutoff = 0.05, 
                  readable = TRUE)
@@ -635,7 +634,10 @@ barplot(kegg_enrich, drop=TRUE, showCategory=12)
 
 # Plot specific KEGG pathways (w fold change) with pathview
 # pathway.id : KEGG pathway
-pathview(gene.data = gene_matrix, pathway.id = "04940", species = "mouse", map.symbol = T)
+pathview(gene.data = gene_matrix, 
+         pathway.id = "04940", 
+         species = "mouse", 
+         map.symbol = T)
 
 
 # - - - - - - - - - - - - - 
@@ -680,7 +682,7 @@ You can the links below for a more in depth walk through of RNAseq analysis usin
 
 1. Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. Available online at: http://www.bioinformatics.babraham.ac.uk/projects/fastqc  
 
-2 .Martin, Marcel. Cutadapt removes adapter sequences from high-throughput sequencing reads. EMBnet.journal, [S.l.], v. 17, n. 1, p. pp. 10-12, may. 2011. ISSN 2226-6089. Available at: <http://journal.embnet.org/index.php/embnetjournal/article/view/200>. doi:http://dx.doi.org/10.14806/ej.17.1.200.  
+2. Martin, Marcel. Cutadapt removes adapter sequences from high-throughput sequencing reads. EMBnet.journal, [S.l.], v. 17, n. 1, p. pp. 10-12, may. 2011. ISSN 2226-6089. Available at: <http://journal.embnet.org/index.php/embnetjournal/article/view/200>. doi:http://dx.doi.org/10.14806/ej.17.1.200.  
 
 3. Kopylova E., Noé L. and Touzet H., "SortMeRNA: Fast and accurate filtering of ribosomal RNAs in metatranscriptomic data", Bioinformatics (2012), doi: 10.1093/bioinformatics/bts611
 
@@ -692,7 +694,7 @@ You can the links below for a more in depth walk through of RNAseq analysis usin
 
 7. Love MI, Huber W and Anders S (2014). “Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2.” Genome Biology, 15, pp. 550.
 
-8. Yu G, Wang L, Han Y and He Q (2012). “clusterProfiler: an R package for comparing biological themes among gene clusters.” OMICS: A Journal of Integrative Biology, 16(5), pp. 284-287. 
+8. Yu G, Wang L, Han Y and He Q (2012). “clusterProfiler: an R package for comparing biological themes among gene clusters.” OMICS: A Journal of Integrative Biology, 16(5), pp. 284-287.  
 
-9 .Philip Ewels, Måns Magnusson, Sverker Lundin and Max Käller. "MultiQC: Summarize analysis results for multiple tools and samples in a single report" Bioinformatics (2016). doi: 10.1093/bioinformatics/btw354. PMID: 27312411
+9. Philip Ewels, Måns Magnusson, Sverker Lundin and Max Käller. "MultiQC: Summarize analysis results for multiple tools and samples in a single report" Bioinformatics (2016). doi: 10.1093/bioinformatics/btw354. PMID: 27312411
 

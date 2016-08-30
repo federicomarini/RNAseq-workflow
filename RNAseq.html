@@ -609,7 +609,6 @@ Get more information about clusterProfiler here: <a href="http://bioconductor.or
 <span class="kw">library</span>(DOSE)
 <span class="kw">library</span>(pathview)
 <span class="kw">library</span>(org.Mm.eg.db)
-<span class="kw">library</span>(org.Hs.eg.db)
 
 <span class="co"># Create a matrix of gene entrez ID's and log fold changes</span>
 gene_matrix &lt;-<span class="st"> </span>res_out_sig$logFC
@@ -619,7 +618,7 @@ gene_matrix &lt;-<span class="st"> </span>res_out_sig$logFC
 <span class="co"># - - - - - - - - - - - - - </span>
 <span class="co"># Enrich with KEGG database</span>
 <span class="co"># - - - - - - - - - - - - - </span>
-kegg_enrich &lt;-<span class="st"> </span><span class="kw">enrichKEGG</span>(<span class="dt">gene =</span> gene_matrix,
+kegg_enrich &lt;-<span class="st"> </span><span class="kw">enrichKEGG</span>(<span class="dt">gene =</span> <span class="kw">names</span>(gene_matrix),
                  <span class="dt">organism =</span> <span class="st">'mouse'</span>,
                  <span class="dt">pvalueCutoff =</span> <span class="fl">0.05</span>, 
                  <span class="dt">readable =</span> <span class="ot">TRUE</span>)
@@ -632,7 +631,10 @@ kegg_enrich &lt;-<span class="st"> </span><span class="kw">enrichKEGG</span>(<sp
 
 <span class="co"># Plot specific KEGG pathways (w fold change) with pathview</span>
 <span class="co"># pathway.id : KEGG pathway</span>
-<span class="kw">pathview</span>(<span class="dt">gene.data =</span> gene_matrix, <span class="dt">pathway.id =</span> <span class="st">&quot;04940&quot;</span>, <span class="dt">species =</span> <span class="st">&quot;mouse&quot;</span>, <span class="dt">map.symbol =</span> T)
+<span class="kw">pathview</span>(<span class="dt">gene.data =</span> gene_matrix, 
+         <span class="dt">pathway.id =</span> <span class="st">&quot;04940&quot;</span>, 
+         <span class="dt">species =</span> <span class="st">&quot;mouse&quot;</span>, 
+         <span class="dt">map.symbol =</span> T)
 
 
 <span class="co"># - - - - - - - - - - - - - </span>
@@ -667,18 +669,16 @@ reactome_enrich &lt;-<span class="st"> </span><span class="kw">enrichPathway</sp
 <div id="citations" class="section level3">
 <h3>Citations:</h3>
 <ol style="list-style-type: decimal">
-<li>Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. Available online at: <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc" class="uri">http://www.bioinformatics.babraham.ac.uk/projects/fastqc</a></li>
-</ol>
-<p>2 .Martin, Marcel. Cutadapt removes adapter sequences from high-throughput sequencing reads. EMBnet.journal, [S.l.], v. 17, n. 1, p. pp. 10-12, may. 2011. ISSN 2226-6089. Available at: <a href="http://journal.embnet.org/index.php/embnetjournal/article/view/200" class="uri">http://journal.embnet.org/index.php/embnetjournal/article/view/200</a>. <a href="doi:http://dx.doi.org/10.14806/ej.17.1.200" class="uri">doi:http://dx.doi.org/10.14806/ej.17.1.200</a>.</p>
-<ol start="3" style="list-style-type: decimal">
+<li><p>Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. Available online at: <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc" class="uri">http://www.bioinformatics.babraham.ac.uk/projects/fastqc</a></p></li>
+<li><p>Martin, Marcel. Cutadapt removes adapter sequences from high-throughput sequencing reads. EMBnet.journal, [S.l.], v. 17, n. 1, p. pp. 10-12, may. 2011. ISSN 2226-6089. Available at: <a href="http://journal.embnet.org/index.php/embnetjournal/article/view/200" class="uri">http://journal.embnet.org/index.php/embnetjournal/article/view/200</a>. <a href="doi:http://dx.doi.org/10.14806/ej.17.1.200" class="uri">doi:http://dx.doi.org/10.14806/ej.17.1.200</a>.</p></li>
 <li><p>Kopylova E., Noé L. and Touzet H., “SortMeRNA: Fast and accurate filtering of ribosomal RNAs in metatranscriptomic data”, Bioinformatics (2012), doi: 10.1093/bioinformatics/bts611</p></li>
 <li><p>Dobin A, Davis CA, Schlesinger F, et al. STAR: ultrafast universal RNA-seq aligner. Bioinformatics. 2013;29(1):15-21. <a href="doi:10.1093/bioinformatics/bts635" class="uri">doi:10.1093/bioinformatics/bts635</a>.</p></li>
 <li><p>Lassmann et al. (2010) “SAMStat: monitoring biases in next generation sequencing data.” Bioinformatics <a href="doi:10.1093/bioinformatics/btq614" class="uri">doi:10.1093/bioinformatics/btq614</a> [PMID: 21088025]</p></li>
 <li><p>Liao Y, Smyth GK and Shi W (2014). featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics, 30(7):923-30.</p></li>
 <li><p>Love MI, Huber W and Anders S (2014). “Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2.” Genome Biology, 15, pp. 550.</p></li>
 <li><p>Yu G, Wang L, Han Y and He Q (2012). “clusterProfiler: an R package for comparing biological themes among gene clusters.” OMICS: A Journal of Integrative Biology, 16(5), pp. 284-287.</p></li>
+<li><p>Philip Ewels, Måns Magnusson, Sverker Lundin and Max Käller. “MultiQC: Summarize analysis results for multiple tools and samples in a single report” Bioinformatics (2016). doi: 10.1093/bioinformatics/btw354. PMID: 27312411</p></li>
 </ol>
-<p>9 .Philip Ewels, Måns Magnusson, Sverker Lundin and Max Käller. “MultiQC: Summarize analysis results for multiple tools and samples in a single report” Bioinformatics (2016). doi: 10.1093/bioinformatics/btw354. PMID: 27312411</p>
 </div>
 
 

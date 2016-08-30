@@ -364,8 +364,8 @@ biocLite("dplyr")
 One you have an R environment appropriatley set up, you can begin to import the featureCounts output of genes counts, found within the ```5_final_counts``` folder. This tutorial will use DESeq2 to normalize and perform the statistical analysis between sample groups. Be sure to copy the ```final_counts.txt``` file generate from featureCounts step to your set working directory, or specify the full location when importing the table. 
 <br>  
 If you would like to use an example featureCounts output, download the gene counts and metadata here:  
-https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/final_counts.txt  
-https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/metadata.txt  
+https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/final_counts.txt **(Save Link As...)**  
+https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/metadata.txt **(Save Link As...)**    
 
 ```{R, eval = F}
 # Author 

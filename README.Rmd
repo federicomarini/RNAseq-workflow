@@ -282,7 +282,7 @@ The STAR aligner requires an index to be created before aligning any ```fastq```
 # Download index job file
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
-# Submit the make_index.sh as a job. Set the read length to 50bp. (~30 minutes)
+# Submit the make_index.sh as a job. Set the read length to 50bp. (~45 minutes)
 qsub make_index.sh 50
 ```
 
@@ -666,14 +666,13 @@ summary(reactome_enrich)
 
 ### 11. Going further with RNAseq analysis
 
-You can the links below for a more in depth walk through of RNAseq analysis using R: 
-* http://www.bioconductor.org/help/workflows/rnaseqGene/  
-* http://bioconnector.org/workshops/r-rnaseq-airway.html
-* http://www-huber.embl.de/users/klaus/Teaching/DESeq2Predoc2014.html
-* http://www-huber.embl.de/users/klaus/Teaching/DESeq2.pdf
-* https://web.stanford.edu/class/bios221/labs/rnaseq/lab_4_rnaseq.html
-* http://www.rna-seqblog.com/which-method-should-you-use-for-normalization-of-rna-seq-data/
-
+You can the links below for a more in depth walk through of RNAseq analysis using R:  
+http://www.bioconductor.org/help/workflows/rnaseqGene/  
+http://bioconnector.org/workshops/r-rnaseq-airway.html  
+http://www-huber.embl.de/users/klaus/Teaching/DESeq2Predoc2014.html  
+http://www-huber.embl.de/users/klaus/Teaching/DESeq2.pdf  
+https://web.stanford.edu/class/bios221/labs/rnaseq/lab_4_rnaseq.html  
+http://www.rna-seqblog.com/which-method-should-you-use-for-normalization-of-rna-seq-data/  
 
 
 

@@ -61,9 +61,9 @@ Note: If there is an error during the virtualenv creation step that states ```Th
 
 #### 1c. Download an example dataset (Optional)
 If you want to use an example dataset to practice the RNAseq alignment workflow, run the commands below to place a fastq file in the ```input``` folder.  
-
+<br>
 **Citation: ** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI  
-The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression.Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)  
+The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)  
 
 ```bash
 # Download publically available mouse RNAseq fastq files.
@@ -207,7 +207,7 @@ STAR --version
 ```
 
 #### 2f. Install Subread
-"Subread package: high-performance read alignment, quantification and mutation discovery"  
+"Subread package: high-performance read alignment, quantification and mutation discovery"
 <br>
 **Link:** http://subread.sourceforge.net/  
 **Link:** http://bioinf.wehi.edu.au/featureCounts/  
@@ -275,8 +275,8 @@ wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh
 wget -P annotation/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz
 
 # Decompress
-gunzip genome/gencode.v24.transcripts.fa.gz
-gunzip annotation/gencode.v24.annotation.gtf.gz
+gunzip genome/GRCh38.p7.genome.fa.gz
+gunzip annotation/gencode.v25.annotation.gtf.gz
 ```
 
 #### 3c. Other genome
@@ -293,8 +293,8 @@ The STAR aligner requires an index to be created before aligning any ```fastq```
 # Download index job file
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/make_index.sh
 
-# Submit the make_index.sh as a job. Set the read length to 101bp.
-qsub make_index.sh 101
+# Submit the make_index.sh as a job. Set the read length to 50bp. (~30 minutes)
+qsub make_index.sh 50
 ```
 
 
@@ -303,11 +303,10 @@ Once the index has been generated and all of the tools are installed, it is time
 <br>  
 Before submitting the command, make sure you change the variables within the file to reflect your data set.    
 **qualityCutoff** : The minimum Phred score to retain nucleotides  [Default = 20]  
-**trimLength** :  The minimum length of the sequence to keep after quality trimming. Typically 60% of the total length or greater. [Default = 50bp]  
+**trimLength** :  The minimum length of the sequence to keep after quality trimming. Typically 60% of the total length or greater. [Default = 20]  
 
 ```bash
-wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow_parallel.sh
-wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/post-processing.sh
+wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow.sh
 ```
 
 
@@ -316,16 +315,17 @@ wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/post-p
 The job can be submitted to the cluster once you have changed the parameters to reflect your data and you have placed the ```.fastq.gz``` files into the folder, ```input```. The command is written to submit an array job, which means you must specify how many times the job should run. In this case it is dependent upon how many individual ```.fastq.gz``` files that are located in the ```input``` folder. If there are 6 different samples within the folder you would run the command ```qsub -t 1:6 run_workflow.sh```, but if you have 10 files, you would run the command ```qsub -t 1:10 run_workflow.sh```. The ```-t``` flag corresponds to how many different commands should be submitted.
 
 ```bash
-qsub -t 1:6 run_workflow.sh
+qsub -t 1:4 run_workflow.sh
 ```
 **Note:** The command is written for SGE clusters, but if you have a different cluster set up, you can change the variable ```$SGE_TASK_ID``` to the correct array style variable.
 
 
 ### 6b. Process the output files and generate a report 
-After the main workflow has finished running, you will have generated aligned ```.bam``` files for each sample. These files only give the coordinates for the sequence alignments on the genome, and must be summarized to give gene counts per sample, before any statistical analysis can be performed. To do this we perform further processing the output files using the ```post-processing.sh``` script There is no need for a parallel array script and the command can be submitted as is as long as no folder names/locations were not changed in main workflow step.  
+After the main workflow has finished running, you will have generated aligned ```.bam``` files for each sample. These files only give the coordinates for the sequence alignments on the genome, and must be summarized to give gene counts per sample, before any statistical analysis can be performed. To do this we perform further processing the output files using the ```postprocessing.sh``` script There is no need for a parallel array script and the command can be submitted as is as long as no folder names/locations were not changed in main workflow step.  
 
 ```bash
-qsub post-processing.sh
+wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/postprocessing.sh
+qsub postprocessing.sh
 ```
 
 ### 6c. Outputs from running the workflow
@@ -347,16 +347,11 @@ Many files are generated after running the main workflow and the post-processing
 │   └── 6_multiQC - Overall workflow report
 ```
 
-
-
-
 ### 7. Differential expression analysis using R
 Once the workflow has completed, you can now use the gene count table as an input into DESeq2 for statistical analysis using the R-programming language. It is highly reccomended to use **RStudio** when writing R code and generating R-related analyses. You can download RStudio for your system here: https://www.rstudio.com/products/rstudio/download/  
   
 #### 7a. Generate a metadata file
 One additional required file which is needed is a type of metadata file. This can be created in R or it can be imported as a text file. The mapping file must have sample identifiers that match the the resulting table with more columns that describe the sample (e.g Treatment).
-
-
 
 #### 7b. Install required R-libraries
 Multiple libraries are required to perform analysis, plotting and enrichment. 
@@ -365,7 +360,6 @@ Multiple libraries are required to perform analysis, plotting and enrichment.
 source("https://bioconductor.org/biocLite.R")
 biocLite("DESeq2")
 biocLite("ggplot2")
-biocLite("gplots")
 biocLite("clusterProfiler")
 biocLite("biomaRt")
 biocLite("ReactomePA")
@@ -376,19 +370,18 @@ biocLite("org.Mm.eg.db")
 biocLite("org.Hs.eg.db")
 biocLite("pheatmap")
 biocLite("genefilter")
-biocLite("fdrtool")
 biocLite("RColorBrewer")
 biocLite("topGO")
 biocLite("dplyr")
-biocLite("NMF")
 ```
 
 
 #### 7c. Using featureCounts output
 One you have an R environment appropriatley set up, you can begin to import the featureCounts output of genes counts, found within the ```5_final_counts``` folder. This tutorial will use DESeq2 to normalize and perform the statistical analysis between sample groups. Be sure to copy the ```final_counts.txt``` file generate from featureCounts step to your set working directory, or specify the full location when importing the table. 
 <br>  
-If you would like to use an example featureCounts output, download the file here: (TODO). 
-
+If you would like to use an example featureCounts output, download the gene counts and metadata here:  
+https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/final_counts.txt  
+https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/metadata.txt  
 
 
 ```r
@@ -403,16 +396,12 @@ If you would like to use an example featureCounts output, download the file here
 # - - - - - - - - - - - - - - -
 library(DESeq2)
 library(ggplot2)
-library(fdrtool)
-library(biomaRt)
-library(pheatmap)
-library(RColorBrewer)
-library(clusterProfiler)
+library(knitr)
+```
+<br>
+**Import gene counts information from featureCounts output.**
 
-# Set working directory. (if needed)
-setwd("~/path/to/working/directory/")
-
-
+```r
 # - - - - - - - - - - - - - - -
 # Import featureCounts data
 # - - - - - - - - - - - - - - -
@@ -428,9 +417,12 @@ colnames(countdata) <- gsub("..", "", colnames(countdata), fixed = T)
 
 # Remove length/char columns
 countdata <- countdata[ ,c(-1:-5)]
-colnames(countdata) # make sure ID's are correct
+kable(countdata) # make sure ID's are correct
+```
+<br>
+**Import metadata text file. The SampleID's must be the first column**
 
-
+```r
 # - - - - - - - - - - - - - - -
 # Import metadata 
 # (or create a new dataframe)
@@ -438,15 +430,18 @@ colnames(countdata) # make sure ID's are correct
 
 # Import metadata file
 # - make row names the matching sampleID's from the countdata
-metadata <- read.delim("path/to/sample_mapping_file.txt", row.names = 1)
+metadata <- read.delim("metadata.txt", row.names = 1)
 
 # Add sampleID's to the mapping file
-metadata$sampleID <- row.names(metadata)
+metadata$sampleid <- row.names(metadata)
 
 # Reorder sampleID's to match featureCounts column order. 
-metadata <- metadata[match(colnames(countdata), metadata$sampleID),]
+metadata <- metadata[match(colnames(countdata), metadata$sampleid), ]
+```
+<br>
+**Make a DESeq2 object from metadata and gene count data**
 
-
+```r
 # - - - - - - - - - - - - - - - - - - - - - -
 # Make DESeq2 object from featureCounts object 
 # - - - - - - - - - - - - - - - - - - - - - -
@@ -454,9 +449,10 @@ metadata <- metadata[match(colnames(countdata), metadata$sampleID),]
 # - colData : sample metadata in the dataframe with row names as sampleID's
 # - design : The design of the comparisons to use. 
 #            Use (~) before the name of the column variable to compare
-ddsMat <- DESeqDataSetFromMatrix(countData = counts,
+ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
                                  colData = metadata,
                                  design = ~Group)
+
 
 # - - - - - - - - - - - - - - - - - - - - - -
 # Find differential expressed genes
@@ -472,9 +468,6 @@ summary(res)
 
 # Find the directionality of the fold change 
 mcols(res, use.names = T)
-
-# Order results by padj value 
-res <- res[order(res_out$padj), ]
 ```
 
 
@@ -509,7 +502,7 @@ res$entrez <- mapIds(x = org.Mm.eg.db,
 
 # Subset for only significant genes (q < 0.05)
 res_sig <- subset(res, padj < 0.05)
-summary(ddPups_res_sig)
+summary(res_sig)
 ```
 
 #### 8b. Write all the important results to .txt files
@@ -567,18 +560,17 @@ plotPCA(ddsMat_rlog, intgroup = "Group")
 library(pheatmap)
 library(RColorBrewer)
 
-# rlog transformation of the raw count data. 
-# Necessary to show data in plots
-rld <- rlog(ddsMat)
+# Convert all samples to rlog
+ddsMat_rlog <- rlog(ddsMat, blind = FALSE)
 
 # Gather top genes and make matrix
-mat <- assay(rld[row.names(res_out_sig)])
+mat <- assay(ddsMat_rlog[row.names(res_sig)])
 
 # Make colored column annotations.
 # Choose which column variables you want to annotate the columns by.
 annotation_col = data.frame(
-  Treatment = factor(colData(rld)$Group),
-  row.names = colData(rld)$SampleID
+  Treatment = factor(colData(ddsMat_rlog)$Group),
+  row.names = colData(ddsMat_rlog)$sampleid
 )
 
 # Make Heatmap with pheatmap function.
@@ -593,17 +585,45 @@ pheatmap(mat = mat,
 
 #### 9c. Volcano plot
 
+```r
+# Load required libraries
+library(ggplot2)
+library(RColorBrewer)
+
+# Gather Log-fold change and FDR-corrected pvalues from deseq2 results
+data <- data.frame(pval = -log10(res$padj), 
+                   lfc = res$log2FoldChange, 
+                   row.names = row.names(res))
+
+# Remove any rows that have NA as an entry
+data <- na.omit(data)
+
+# Make a basic ggplot2 object with x-y values
+vol <- ggplot(data, aes(x = lfc, y = pval))
+
+# Add ggplot2 layers
+vol +   
+  ggtitle(label = "Volcano Plot")
+  geom_point(aes(colour = pval), size = 5, alpha = 0.7, na.rm = T) + # color the dots
+  theme_bw(base_size = 18) + # change overall theme
+  theme(legend.position = "right") + # change the legend
+  xlab(expression(log[2]("Treatment" / "Control"))) + # Change X-Axis label
+  ylab(expression(-log[10]("adjusted p-value"))) + # Change Y-Axis label
+  geom_vline(xintercept = c(-2, 2), colour = "darkgrey") + # Add fold change cutoff lines
+  geom_hline(yintercept = 1.3, colour = "darkgrey") + # Add p-adj value cutoff line
+  scale_colour_gradient(low = "red", high = "green") # Add red-green scaling by intensity
+```
 
 #### 9d. MA plot
 
 ```r
-plotMA(res, ylim=c(-5,5))
+plotMA(res, ylim=c(-5, 5))
 ```
 
 #### 9e. Plotting a single gene
 
 ```r
-plotCounts(dds, gene = "", intgroup = "dex")
+plotCounts(dds, gene = "", intgroup = "Group")
 ```
 
 ### 10. Pathway analysis on differentially expressed genes. 

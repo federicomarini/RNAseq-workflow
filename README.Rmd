@@ -685,7 +685,7 @@ pathview(gene.data = gene_matrix,
          species = "mouse", 
          map.symbol = T)
 ```
-![KEGG Pathways](mmu04070.pathview.png)
+![KEGG Pathways](README_files/figure-markdown_github/mmu04070.pathview.png)
 
 
 

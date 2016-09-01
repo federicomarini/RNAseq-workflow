@@ -10,13 +10,13 @@ Rcpp
 RcppArmadillo
 DESeq2
 ggplot2
+knitr
 AnnotationDbi
 DBI
 RSQLite
 org.Mm.eg.db
 pheatmap
 RColorBrewer
-knitr
 clusterProfiler
 ReactomePA
 KEGG.db

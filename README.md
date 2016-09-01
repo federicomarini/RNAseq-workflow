@@ -801,12 +801,10 @@ head(summary(kegg_enrich))
 barplot(kegg_enrich, drop=TRUE, 
         showCategory=10, 
         title = "KEGG Enrichment Pathways",
-        font.size = 10)
+        font.size = 8)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-32-1.png)
-
-------------------------------------------------------------------------
 
 #### 10b. Use ReactomeDB database
 
@@ -864,7 +862,7 @@ barplot(reactome_enrich,
         drop=TRUE, 
         showCategory=10, 
         title = "ReactomeDB Enrichment Pathways",
-        font.size = 10)
+        font.size = 8)
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-33-1.png)

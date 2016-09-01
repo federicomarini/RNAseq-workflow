@@ -632,7 +632,7 @@ names(gene_matrix) <- res_sig_entrez$entrez
 
 ***
 #### 10a. Use KEGG gene database
-```{r, eval = T, cache=TRUE, warning  = F, message = F}
+```{r, eval = T, cache=TRUE, warning  = F, message = F, fig.width=6}
 # - - - - - - - - - - - - - 
 # Enrich with KEGG database
 # - - - - - - - - - - - - - 
@@ -648,12 +648,12 @@ head(summary(kegg_enrich))
 barplot(kegg_enrich, drop=TRUE, 
         showCategory=10, 
         title = "KEGG Enrichment Pathways",
-        font.size = 10)
+        font.size = 8)
 ```
 
-***
+
 #### 10b. Use ReactomeDB database
-```{r, eval = T, cache=TRUE, warning  = F, message = F}
+```{r, eval = T, cache=TRUE, warning  = F, message = F, fig.width=6}
 # - - - - - - - - - - - - - 
 # Enrich with ReactomeDB
 # - - - - - - - - - - - - - 
@@ -669,7 +669,7 @@ barplot(reactome_enrich,
         drop=TRUE, 
         showCategory=10, 
         title = "ReactomeDB Enrichment Pathways",
-        font.size = 10)
+        font.size = 8)
 ```
 
 ***

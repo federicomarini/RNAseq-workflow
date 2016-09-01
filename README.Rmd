@@ -364,7 +364,7 @@ https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/met
 ***
 ##### Import gene counts information from featureCounts output.
 
-```{r, cache = TRUE,  warning  = F, message = F, collapse=TRUE}
+```{r, cache = TRUE,  warning  = F, message = F}
 
 # - - - - - - - - - - - - - - -
 # Load required libraries and

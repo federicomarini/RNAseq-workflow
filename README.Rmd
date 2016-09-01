@@ -73,8 +73,8 @@ wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/002/SRR1374922/SRR13749
 wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/003/SRR1374923/SRR1374923.fastq.gz
 wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/004/SRR1374924/SRR1374924.fastq.gz
 ```
-**Citation: ** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI  
-The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)  
+Citation:   
+The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014). https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI   
 
 ### 2. Installing required tools
 This workflow requires many different tools. Some of these tools maybe available on your cluster environment, but to ensure the correct versioning of the tools, it is suggested to install them again inside a virtual environment. See http://docs.python-guide.org/en/latest/dev/virtualenvs/ for more information about using virtual-environments.
@@ -363,7 +363,8 @@ https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/met
 
 ***
 ##### Import gene counts information from featureCounts output.
-```{r, cache = TRUE,  warning  = F, message = F}
+
+```{r, cache = TRUE,  warning  = F, message = F, collapse=TRUE}
 
 # - - - - - - - - - - - - - - -
 # Load required libraries and
@@ -513,8 +514,10 @@ write.table(x = as.data.frame(res_sig),
 ddsMat_rlog <- rlog(ddsMat, blind = FALSE)
 
 # Plot PCA by column variable
-plotPCA(ddsMat_rlog, intgroup = "Group")
+plotPCA(ddsMat_rlog, intgroup = "Group", ntop = 500) +
+  theme_bw() # remove default ggplot2 theme
 ```
+***
 
 
 #### 9b. Heatmap of significant genes
@@ -552,7 +555,7 @@ pheatmap(mat = mat,
          annotation_colors = ann_colors, 
          show_colnames = F)
 ```
-
+***
 
 #### 9c. Volcano plot
 ```{r, eval=T}
@@ -584,11 +587,13 @@ vol +
   scale_colour_gradient(low = "red", high = "green") # Add red-green scaling by intensity
 
 ```
+***
 
 #### 9d. MA plot
 ```{r, cache = T}
 plotMA(res, ylim = c(-5, 5))
 ```
+***
 
 #### 9e. Plotting a single gene
 ```{r, eval=T}
@@ -625,7 +630,7 @@ gene_matrix <- res_sig_entrez$log2FoldChange
 names(gene_matrix) <- res_sig_entrez$entrez
 ```
 
-
+***
 #### 10a. Use KEGG gene database
 ```{r, eval = T, cache=TRUE, warning  = F, message = F}
 # - - - - - - - - - - - - - 
@@ -646,7 +651,7 @@ barplot(kegg_enrich, drop=TRUE,
         font.size = 10)
 ```
 
-
+***
 #### 10b. Use ReactomeDB database
 ```{r, eval = T, cache=TRUE, warning  = F, message = F}
 # - - - - - - - - - - - - - 
@@ -667,6 +672,7 @@ barplot(reactome_enrich,
         font.size = 10)
 ```
 
+***
 #### 10c. Plotting pathways with pathview
 ```{r, eval = T, cache=TRUE, warning  = F, message = F}
 # Load pathview

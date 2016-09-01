@@ -72,8 +72,8 @@ wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/003/SRR1374923/SRR13749
 wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/004/SRR1374924/SRR1374924.fastq.gz
 ```
 
-**Citation: ** <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI>
-The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)
+Citation:
+The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014). <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI>
 
 ### 2. Installing required tools
 
@@ -387,6 +387,7 @@ If you would like to use an example featureCounts output, download the gene coun
 ##### Import gene counts information from featureCounts output.
 
 ``` r
+
 # - - - - - - - - - - - - - - -
 # Load required libraries and
 # set up environment
@@ -414,15 +415,14 @@ countdata <- countdata[ ,c(-1:-5)]
 
 # Make sure ID's are correct
 head(countdata)
+##               SRR1374924 SRR1374923 SRR1374921 SRR1374922
+## 4933401J01Rik          0          0          0          0
+## Gm26206                0          0          0          0
+## Xkr4                 214        302        459        425
+## Gm18956                0          0          0          0
+## Gm37180                4          2          3          1
+## Gm37363                1          0          0          1
 ```
-
-    ##               SRR1374924 SRR1374923 SRR1374921 SRR1374922
-    ## 4933401J01Rik          0          0          0          0
-    ## Gm26206                0          0          0          0
-    ## Xkr4                 214        302        459        425
-    ## Gm18956                0          0          0          0
-    ## Gm37180                4          2          3          1
-    ## Gm37363                1          0          0          1
 
 ------------------------------------------------------------------------
 
@@ -625,10 +625,11 @@ write.table(x = as.data.frame(res_sig),
 ddsMat_rlog <- rlog(ddsMat, blind = FALSE)
 
 # Plot PCA by column variable
-plotPCA(ddsMat_rlog, intgroup = "Group")
+plotPCA(ddsMat_rlog, intgroup = "Group", ntop = 500) +
+  theme_bw() # remove default ggplot2 theme
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-26-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-26-1.png) \*\*\*
 
 #### 9b. Heatmap of significant genes
 
@@ -666,7 +667,7 @@ pheatmap(mat = mat,
          show_colnames = F)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-27-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-27-1.png) \*\*\*
 
 #### 9c. Volcano plot
 
@@ -757,7 +758,7 @@ vol +
   scale_colour_gradient(low = "red", high = "green") # Add red-green scaling by intensity
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-28-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-28-1.png) \*\*\*
 
 #### 9d. MA plot
 
@@ -765,7 +766,7 @@ vol +
 plotMA(res, ylim = c(-5, 5))
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-29-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-29-1.png) \*\*\*
 
 #### 9e. Plotting a single gene
 
@@ -806,6 +807,8 @@ gene_matrix <- res_sig_entrez$log2FoldChange
 # Add the entrezID's as names for each logFC entry
 names(gene_matrix) <- res_sig_entrez$entrez
 ```
+
+------------------------------------------------------------------------
 
 #### 10a. Use KEGG gene database
 
@@ -860,6 +863,8 @@ barplot(kegg_enrich, drop=TRUE,
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-32-1.png)
+
+------------------------------------------------------------------------
 
 #### 10b. Use ReactomeDB database
 
@@ -921,6 +926,8 @@ barplot(reactome_enrich,
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-33-1.png)
+
+------------------------------------------------------------------------
 
 #### 10c. Plotting pathways with pathview
 

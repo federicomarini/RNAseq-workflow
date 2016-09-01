@@ -7,3 +7,14 @@ dev/
 
 run_workflow_dev.sh
 RNAseq.utf8.md
+
+*.dcf
+
+README_files/
+.Rproj.user
+
+*.Rproj
+
+mmu04070.xml
+
+mmu04070.png

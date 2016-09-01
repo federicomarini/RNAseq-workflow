@@ -1,8 +1,11 @@
 ---
 title: "RNAseq Workflow"
 author: "Thomas W. Battaglia"
-date: "`r Sys.Date()`"
-output: hrbrmrkdn::bulma
+date: "1 Sept 2016"
+output: 
+  github_document:
+    fig_width: 5
+    fig_height: 5
 ---
 
 
@@ -11,7 +14,7 @@ RNA seq is an emerging technology for deep RNA sequencing. Not only does RNA seq
 
 #### 1a. Setup new directory for analysis
 Many files are generated during the RNA seq workflow, so it is best to keep them stored in an organized directory. The first step before running/installing any tools, is to generate a directory structure for easier organization. The rest of this tutorial assumes your working directory (```pwd```) is within the ```new_rnaseq_analysis``` folder created during the first step, or whatever you choose to name the folder.  
-<br>
+
 **input** : per sample sequencing files (.fastq)  
 **genome** : directory for storing genome of interest (.fasta/.fna)  
 **annotation** : directory for storing the annotation file associated with host genome (.gtf/.gff3)  
@@ -62,9 +65,6 @@ Note: If there is an error during the virtualenv creation step that states ```Th
 
 #### 1c. Download an example dataset (Optional)
 If you want to use an example dataset to practice the RNAseq alignment workflow, run the commands below to place a fastq file in the ```input``` folder.  
-<br>
-**Citation: ** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI  
-The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)  
 ```{bash, eval = F}
 # Download publically available mouse RNAseq fastq files.
 # http://www.ebi.ac.uk/ena/data/view/PRJNA252388
@@ -72,26 +72,27 @@ wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/001/SRR1374921/SRR13749
 wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/002/SRR1374922/SRR1374922.fastq.gz
 wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/003/SRR1374923/SRR1374923.fastq.gz
 wget -P input/ ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR137/004/SRR1374924/SRR1374924.fastq.gz
-
 ```
-
+**Citation: ** https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4124169/?tool=EBI  
+The transcriptional landscape of mouse beta cells compared to human beta cells reveals notable species differences in long non-coding RNA and protein-coding gene expression. Benner C., van der Meulen T., Cacéres E., Tigyi K., Donaldson CJ., Huising MO.BMC Genomics 15620 (2014)  
 
 ### 2. Installing required tools
 This workflow requires many different tools. Some of these tools maybe available on your cluster environment, but to ensure the correct versioning of the tools, it is suggested to install them again inside a virtual environment. See http://docs.python-guide.org/en/latest/dev/virtualenvs/ for more information about using virtual-environments.
-<br>
-Tools that are required for processing are:  
-a. **cutadapt**  
-b. **FastQC**  
-c. **Trim Galore!**  
-d. **SortMeRNA**  
-e. **STAR-aligner**  
-f. **Subread**  
-g. **MultiQC**  
 
+```
+Tools that are required for processing:
+a. cutadapt - adapter and base quality filtering
+b. FastQC - sequence quality analysis
+c. Trim Galore! - more easily run cutadapt and fastqc
+d. SortMeRNA - remove rRNA sequence contamination
+e. STAR-aligner - quickly align sequences to genome
+f. Subread/featureCounts - summarize alignments into gene counts
+g. MultiQC - generate a readable report of all logs
+```
 
 #### 2a. Install cutadapt
 "Cutadapt finds and removes adapter sequences, primers, poly-A tails and other types of unwanted sequence from your high-throughput sequencing reads."  
-<br>
+
 **Link:** http://cutadapt.readthedocs.io/en/stable/guide.html  
 ```{bash, eval = F}
 pip install cutadapt
@@ -99,7 +100,6 @@ pip install cutadapt
 
 #### 2b. Install FastQC
 "FastQC aims to provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines. It provides a modular set of analyses which you can use to give a quick impression of whether your data has any problems of which you should be aware before doing any further analysis."  
-<br>
 **Link:** http://www.bioinformatics.babraham.ac.uk/projects/fastqc/  
 ```{bash, eval = F}
 # Download FastQC to the 'tools' folder  
@@ -121,7 +121,6 @@ fastqc --version
 
 #### 2c. Install Trim Galore!
 "Trim Galore! is a wrapper script to automate quality and adapter trimming as well as quality control, with some added functionality to remove biased methylation positions for RRBS sequence files (for directional, non-directional (or paired-end) sequencing)."  
-<br>
 **Link:** http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/  
 
 ```{bash, eval = F}
@@ -141,8 +140,8 @@ trim_galore --version
 
 #### 2d. Install SortMeRNA
 "SortMeRNA is a biological sequence analysis tool for filtering, mapping and OTU-picking NGS reads. The core algorithm is based on approximate seeds and allows for fast and sensitive analyses of nucleotide sequences. The main application of SortMeRNA is filtering rRNA from metatranscriptomic data."  
-<br>
 **Link:** http://bioinfo.lifl.fr/RNA/sortmerna/  
+
 ```{bash, eval = F}
 # Download SortMeRNA to the 'tools' folder
 wget -P tools/ https://github.com/biocore/sortmerna/archive/2.1.tar.gz 
@@ -163,7 +162,8 @@ link tools/sortmerna-2.1/sortmerna
 indexdb_rna -h
 sortmerna --version
 ```
-<br>
+
+
 Next we need to generate an index for the SortMeRNA database.
 ```{bash, eval = F}
 # Set variable for location of index files
@@ -183,7 +183,6 @@ indexdb_rna --ref $sortmernaREF
 
 #### 2e. Install STAR-aligner
 "Spliced Transcripts Alignment to a Reference"  
-<br>
 **Link:** https://github.com/alexdobin/STAR  
 ```{bash, eval = F}
 # Download STAR to the 'tools' folder
@@ -202,7 +201,6 @@ STAR --version
 
 #### 2f. Install Subread
 "Subread package: high-performance read alignment, quantification and mutation discovery"
-<br>
 **Link:** http://subread.sourceforge.net/  
 **Link:** http://bioinf.wehi.edu.au/featureCounts/  
 
@@ -222,7 +220,7 @@ featureCounts -v
 ```
 
 #### 2g. Install MultiQC
-"MultiQC searches a given directory for analysis logs and compiles a HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools."  
+"MultiQC searches a given directory for analysis logs and compiles a HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools."   
 **Link:** http://multiqc.info/  
 ```{bash, eval = F}
 # Install MultiQC to the virtualenv
@@ -234,14 +232,12 @@ multiqc --version
 ```
 
 
-
 ### 3. Download host genome and annotation file
 A host genome and annotation file are required for a complete RNA seq analysis. The annotation file contains the gene information associated with the coordinates of an alignment. The two files need to places in their respective folders before running the workflow. Additionally, There are different releases of the full mouse genome, so be aware which genome and which annotation file you are using for the sequencing alignment.  
 
 
 #### 3a. Mouse genome
 **Link:** http://www.gencodegenes.org/mouse_releases/current.html   
-
 ```{bash, eval = F}
 # Download mouse genome to the 'genome' folder
 wget -P genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M10/GRCm38.p4.genome.fa.gz
@@ -256,7 +252,6 @@ gunzip annotation/gencode.vM10.annotation.gtf.gz
 
 #### 3b. Human genome
 **Link:** http://www.gencodegenes.org/releases/current.html  
-
 ```{bash, eval = F}
 # Download human genome to the 'genome' folder
 wget -p genome/ ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.p7.genome.fa.gz
@@ -289,14 +284,13 @@ qsub make_index.sh 50
 
 ### 5. Download workflow and change parameters
 Once the index has been generated and all of the tools are installed, it is time to start the alignment workflow. The workflow is stored as a shell (.sh) file which submits an array job which will iterate over each input ```.fastq.gz``` file.
-<br>  
+  
 Before submitting the command, make sure you change the variables within the file to reflect your data set.    
 **qualityCutoff** : The minimum Phred score to retain nucleotides  [Default = 20]  
 **trimLength** :  The minimum length of the sequence to keep after quality trimming. Typically 60% of the total length or greater. [Default = 20]  
 ```{bash, eval = F}
 wget https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/run_workflow.sh
 ```
-
 
 
 ### 6a. Run the workflow in parallel
@@ -367,23 +361,19 @@ If you would like to use an example featureCounts output, download the gene coun
 https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/final_counts.txt **(Save Link As...)**  
 https://raw.githubusercontent.com/twbattaglia/RNAseq-workflow/master/example/metadata.txt **(Save Link As...)**    
 
-```{R, eval = F}
-# Author 
-# Date
-# Summary of analysis
-
+***
+##### Import gene counts information from featureCounts output.
+```{r, cache = TRUE,  warning  = F, message = F}
 
 # - - - - - - - - - - - - - - -
 # Load required libraries and
 # set up environment
 # - - - - - - - - - - - - - - -
-library(DESeq2)
-library(ggplot2)
-library(knitr)
-```
-<br>
-**Import gene counts information from featureCounts output.**
-```{R, eval = F}
+library(DESeq2) # statistical analysis 
+library(ggplot2) # plotting 
+library(knitr) # for better formatting
+
+
 # - - - - - - - - - - - - - - -
 # Import featureCounts data
 # - - - - - - - - - - - - - - -
@@ -391,7 +381,7 @@ library(knitr)
 # Import gene counts table
 # - skip first row (general command info)
 # - make row names the gene identifiers
-countdata <- read.table("final_counts.txt", header = TRUE, skip = 1, row.names = 1)
+countdata <- read.table("example/final_counts.txt", header = TRUE, skip = 1, row.names = 1)
 
 # Remove .bam + '..' from column identifiers
 colnames(countdata) <- gsub(".bam", "", colnames(countdata), fixed = T)
@@ -399,32 +389,32 @@ colnames(countdata) <- gsub("..", "", colnames(countdata), fixed = T)
 
 # Remove length/char columns
 countdata <- countdata[ ,c(-1:-5)]
-kable(countdata) # make sure ID's are correct
+
+# Make sure ID's are correct
+head(countdata)
 ```
-<br>
-**Import metadata text file. The SampleID's must be the first column**
-```{R, eval = F}
-# - - - - - - - - - - - - - - -
-# Import metadata 
-# (or create a new dataframe)
-# - - - - - - - - - - - - - - -
+
+***
+##### Import metadata text file. The SampleID's must be the first column
+```{r, cache = TRUE, warning  = F, message = F}
 
 # Import metadata file
 # - make row names the matching sampleID's from the countdata
-metadata <- read.delim("metadata.txt", row.names = 1)
+metadata <- read.delim("example/metadata.txt", row.names = 1)
 
 # Add sampleID's to the mapping file
 metadata$sampleid <- row.names(metadata)
 
 # Reorder sampleID's to match featureCounts column order. 
 metadata <- metadata[match(colnames(countdata), metadata$sampleid), ]
+
+# Make sure ID's are correct
+head(metadata)
 ```
-<br>
-**Make a DESeq2 object from metadata and gene count data**
-```{R, eval = F}
-# - - - - - - - - - - - - - - - - - - - - - -
-# Make DESeq2 object from featureCounts object 
-# - - - - - - - - - - - - - - - - - - - - - -
+
+***
+##### Make DESeq2 object from counts and metadata 
+```{r, cache=TRUE, warning = F, message = T}
 # - countData : count dataframe
 # - colData : sample metadata in the dataframe with row names as sampleID's
 # - design : The design of the comparisons to use. 
@@ -434,12 +424,14 @@ ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
                                  design = ~Group)
 
 
-# - - - - - - - - - - - - - - - - - - - - - -
 # Find differential expressed genes
-# - - - - - - - - - - - - - - - - - - - - - -
 # Run DESEq2
 ddsMat <- DESeq(ddsMat)
+```
 
+***
+##### View results from statistical analysis
+```{r, cache=TRUE, warning = F, message = F}
 # Get results from testing with FDR adjust pvalues
 res <- results(ddsMat, pAdjustMethod = "fdr", alpha = 0.05)
 
@@ -454,7 +446,7 @@ mcols(res, use.names = T)
 ### 8. Gene annotation
 
 #### 8a. Gathering gene annotation information
-```{R, eval = F}
+```{r, cache=TRUE, warning  = F, message = F}
 library(AnnotationDbi)
 library(org.Mm.eg.db)
 
@@ -462,32 +454,28 @@ library(org.Mm.eg.db)
 res$description <- mapIds(x = org.Mm.eg.db,
                           keys = row.names(res),
                           column = "GENENAME",
-                          keytype = "ENSEMBL",
+                          keytype = "SYMBOL",
                           multiVals = "first")
 
 # Add gene symbol
-res$symbol <- mapIds(x = org.Mm.eg.db,
-                     keys = row.names(res),
-                     column = "SYMBOL",
-                     keytype = "ENSEMBL",
-                     multiVals = "first")
+res$symbol <- row.names(res)
 
 # Add ENTREZ ID
 res$entrez <- mapIds(x = org.Mm.eg.db,
                      keys = row.names(res),
                      column = "ENTREZID",
-                     keytype = "ENSEMBL",
+                     keytype = "SYMBOL",
                      multiVals = "first")
 
 # Subset for only significant genes (q < 0.05)
 res_sig <- subset(res, padj < 0.05)
-summary(res_sig)
+head(res_sig)
 ```
 
 #### 8b. Write all the important results to .txt files
-```{R, eval = F}
+```{r, eval = F}
 # Write normalized gene counts to a .txt file
-write.table(x = as.data.frame(counts(dds), normalized = T), 
+write.table(x = as.data.frame(counts(ddsMat), normalized = T), 
             file = 'DESeq2_normalized_counts.txt', 
             sep = '\t', 
             quote = F,
@@ -520,7 +508,7 @@ write.table(x = as.data.frame(res_sig),
 
 #### 9a. PCA of highest variance genes
 
-```{R, eval = F}
+```{r, cache = TRUE, dpi=100, collapse = T}
 # Convert all samples to rlog
 ddsMat_rlog <- rlog(ddsMat, blind = FALSE)
 
@@ -531,22 +519,28 @@ plotPCA(ddsMat_rlog, intgroup = "Group")
 
 #### 9b. Heatmap of significant genes
 
-```{R, eval = F}
+```{r, cache=T}
 # Load libraries
-library(pheatmap)
-library(RColorBrewer)
+library(pheatmap) # heatmap package
+library(RColorBrewer) # better colors package
 
 # Convert all samples to rlog
 ddsMat_rlog <- rlog(ddsMat, blind = FALSE)
 
-# Gather top genes and make matrix
-mat <- assay(ddsMat_rlog[row.names(res_sig)])
+# Gather top 30 genes and make matrix
+mat <- assay(ddsMat_rlog[row.names(res_sig)])[1:30, ]
 
-# Make colored column annotations.
 # Choose which column variables you want to annotate the columns by.
 annotation_col = data.frame(
-  Treatment = factor(colData(ddsMat_rlog)$Group),
+  Group = factor(colData(ddsMat_rlog)$Group),
+  Replicate = factor(colData(ddsMat_rlog)$Replicate),
   row.names = colData(ddsMat_rlog)$sampleid
+)
+
+# Specify colors you want to annotate the columns by.
+ann_colors = list(
+    Group = c("LoGlu" = "blue", "HiGlu" = "orange"),
+    Replicate = c(Rep1 = "red", Rep2 = "green")
 )
 
 # Make Heatmap with pheatmap function.
@@ -554,14 +548,15 @@ annotation_col = data.frame(
 pheatmap(mat = mat, 
          color = colorRampPalette(brewer.pal(9, "YlOrBr"))(255), 
          scale = "row", 
-         annotation_col = annotation_col,
-         fontsize_row = 8)
+         annotation_col = annotation_col, 
+         annotation_colors = ann_colors, 
+         show_colnames = F)
 ```
 
 
 #### 9c. Volcano plot
-```{r, eval = F}
-# Load required libraries
+```{r, eval=T}
+# Load libraries
 library(ggplot2)
 library(RColorBrewer)
 
@@ -578,7 +573,7 @@ vol <- ggplot(data, aes(x = lfc, y = pval))
 
 # Add ggplot2 layers
 vol +   
-  ggtitle(label = "Volcano Plot")
+  ggtitle(label = "Volcano Plot") +
   geom_point(aes(colour = pval), size = 5, alpha = 0.7, na.rm = T) + # color the dots
   theme_bw(base_size = 18) + # change overall theme
   theme(legend.position = "right") + # change the legend
@@ -591,32 +586,48 @@ vol +
 ```
 
 #### 9d. MA plot
-```{r, eval = F}
-plotMA(res, ylim=c(-5, 5))
+```{r, cache = T}
+plotMA(res, ylim = c(-5, 5))
 ```
 
 #### 9e. Plotting a single gene
-```{r, eval = F}
-plotCounts(dds, gene = "", intgroup = "Group")
+```{r, eval=T}
+# Convert all samples to rlog
+ddsMat_rlog <- rlog(ddsMat, blind = FALSE)
+
+# Get gene with highest expression
+top_gene <- rownames(res)[which.min(res$log2FoldChange)]
+
+# Plot single gene
+plotCounts(ddsMat, gene = "Ttyh1", intgroup = "Group")
 ```
 
 ### 10. Pathway analysis on differentially expressed genes. 
 The code below assumes you have RNA seq results from the mouse genome.  
 Get more information about clusterProfiler here: http://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html
-```{R, eval = F}
+
+#### Prepare data for use with clusterProfiler
+```{r, eval = T, cache=TRUE, warning  = F, message = F}
 # Load required libraries
 library(clusterProfiler)
 library(ReactomePA)
 library(KEGG.db)
 library(DOSE)
-library(pathview)
 library(org.Mm.eg.db)
 
-# Create a matrix of gene entrez ID's and log fold changes
-gene_matrix <- res_out_sig$logFC
-names(gene_matrix) <- res_out_sig$entrez
+# Remove any genes that do not have any entrez identifiers
+res_sig_entrez <- subset(res_sig, is.na(entrez) == FALSE)
+
+# Create a matrix of gene log2 fold changes
+gene_matrix <- res_sig_entrez$log2FoldChange
+
+# Add the entrezID's as names for each logFC entry
+names(gene_matrix) <- res_sig_entrez$entrez
+```
 
 
+#### 10a. Use KEGG gene database
+```{r, eval = T, cache=TRUE, warning  = F, message = F}
 # - - - - - - - - - - - - - 
 # Enrich with KEGG database
 # - - - - - - - - - - - - - 
@@ -626,43 +637,51 @@ kegg_enrich <- enrichKEGG(gene = names(gene_matrix),
                  readable = TRUE)
                  
 # Get table of results
-summary(kegg_enrich)
+head(summary(kegg_enrich))
 
 # Plot results
-barplot(kegg_enrich, drop=TRUE, showCategory=12)
-
-# Plot specific KEGG pathways (w fold change) with pathview
-# pathway.id : KEGG pathway
-pathview(gene.data = gene_matrix, 
-         pathway.id = "04940", 
-         species = "mouse", 
-         map.symbol = T)
+barplot(kegg_enrich, drop=TRUE, 
+        showCategory=10, 
+        title = "KEGG Enrichment Pathways",
+        font.size = 10)
+```
 
 
-# - - - - - - - - - - - - - 
-# Enrich with GO databse
-# - - - - - - - - - - - - - 
-go_enrich <- groupGO(gene = gene_matrix,
-               organism = 'mouse',
-               ont = "BP",
-               level = 3,
-               readable = TRUE)
-
-# Get table of results
-summary(go_enrich)
-
-# Plot results
-barplot(go_enrich, drop=TRUE, showCategory=12)
-
-
+#### 10b. Use ReactomeDB database
+```{r, eval = T, cache=TRUE, warning  = F, message = F}
 # - - - - - - - - - - - - - 
 # Enrich with ReactomeDB
 # - - - - - - - - - - - - - 
-reactome_enrich <- enrichPathway(gene = gene_matrix, organism = 'mouse', pvalueCutoff = 0.05)
+reactome_enrich <- enrichPathway(gene = names(gene_matrix), 
+                                 organism = 'mouse', 
+                                 pvalueCutoff = 0.05)
                  
 # Get table of results
-summary(reactome_enrich)
+head(summary(reactome_enrich))
+
+# Plot results
+barplot(reactome_enrich, 
+        drop=TRUE, 
+        showCategory=10, 
+        title = "ReactomeDB Enrichment Pathways",
+        font.size = 10)
 ```
+
+#### 10c. Plotting pathways with pathview
+```{r, eval = T, cache=TRUE, warning  = F, message = F}
+# Load pathview
+library(pathview)
+
+# Plot specific KEGG pathways (with fold change) 
+# pathway.id : KEGG pathway identifier
+pathview(gene.data = gene_matrix, 
+         pathway.id = "04070", 
+         species = "mouse", 
+         map.symbol = T)
+```
+![KEGG Pathways](mmu04070.pathview.png)
+
+
 
 ### 11. Going further with RNAseq analysis
 

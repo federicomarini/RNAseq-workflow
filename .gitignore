@@ -8,3 +8,5 @@ dev/
 .RData
 .DS_Store
 
+.Rproj.user
+README_cache/
